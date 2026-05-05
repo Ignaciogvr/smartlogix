@@ -1,0 +1,38 @@
+<configuration>
+
+    <!-- ========================= -->
+    <!-- 📦 JSON CONSOLE LOGS -->
+    <!-- ========================= -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+
+            <!-- 🔥 metadata del microservicio -->
+            <customFields>
+                {
+                    "service":"pedidos-service",
+                    "version":"1.0.0"
+                }
+            </customFields>
+
+            <!-- 🔥 incluye traceId automáticamente -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+
+        </encoder>
+
+    </appender>
+
+    <!-- ========================= -->
+    <!-- 🔥 LOG LEVEL GLOBAL -->
+    <!-- ========================= -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- ========================= -->
+    <!-- ⚙️ LOG LEVELS ESPECÍFICOS -->
+    <!-- ========================= -->
+    <logger name="com.smartlogix" level="INFO"/>
+    <logger name="org.springframework" level="WARN"/>
+
+</configuration>
