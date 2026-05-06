@@ -1,9 +1,10 @@
-package com.smartlogix.inventory.security.config;
+package com.smartlogix.inventory.security;
 
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.*;
@@ -18,8 +19,11 @@ import com.smartlogix.inventory.security.jwt.JwtAuthConverter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String ISSUER = "https://dev-nomnv0fhn3zpzt4t.us.auth0.com/";
-    private static final String AUDIENCE = "https://smartlogix-api";
+    private static final String ISSUER =
+            "https://dev-nomnv0fhn3zpzt4t.us.auth0.com/";
+
+    private static final String AUDIENCE =
+            "https://smartlogix-api";
 
     @Bean
     public JwtDecoder jwtDecoder() {
@@ -57,20 +61,19 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // 🔓 PUBLICO
-                .requestMatchers("GET", "/productos").permitAll()
-                .requestMatchers("GET", "/productos/**").permitAll()
+                // PUBLICO
+                .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
 
-                // 🔒 PROTEGIDO
-                .requestMatchers("POST", "/productos").hasRole("ADMIN")
-                .requestMatchers("PUT", "/productos/**").hasRole("ADMIN")
-                .requestMatchers("DELETE", "/productos/**").hasRole("ADMIN")
+                // ADMIN REAL (IMPORTANTE)
+                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 
                 .anyRequest().authenticated()
             )
 
             .oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(new JwtAuthConverter()))
+                oauth2.jwt(jwt ->
+                    jwt.jwtAuthenticationConverter(new JwtAuthConverter())
+                )
             );
 
         return http.build();

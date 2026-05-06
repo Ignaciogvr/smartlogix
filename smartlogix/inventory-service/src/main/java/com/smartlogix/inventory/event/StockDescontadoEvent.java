@@ -1,15 +1,14 @@
 package com.smartlogix.inventory.event;
 
-// 📦 Evento de Kafka que representa una compra
-public class CompraEvent {
+public class StockDescontadoEvent {
 
     private Long productoId;
     private Integer cantidad;
     private String usuarioId;
 
-    public CompraEvent() {}
+    public StockDescontadoEvent() {}
 
-    public CompraEvent(Long productoId, Integer cantidad, String usuarioId) {
+    public StockDescontadoEvent(Long productoId, Integer cantidad, String usuarioId) {
         this.productoId = productoId;
         this.cantidad = cantidad;
         this.usuarioId = usuarioId;

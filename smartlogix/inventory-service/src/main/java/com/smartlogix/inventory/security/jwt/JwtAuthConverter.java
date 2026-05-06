@@ -13,17 +13,19 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
 
-        // 1️⃣ primero permissions (Auth0 recomendado)
         List<String> roles = jwt.getClaimAsStringList("permissions");
 
-        // 2️⃣ fallback a scope si permissions no existe
         if (roles == null || roles.isEmpty()) {
-            String scope = jwt.getClaimAsString("scope");
-            roles = scope != null ? List.of(scope.split(" ")) : List.of();
+            roles = jwt.getClaimAsStringList("roles");
+        }
+
+        if (roles == null) {
+            roles = List.of();
         }
 
         var authorities = roles.stream()
-                .map(r -> "ROLE_" + r.toUpperCase())
+                .map(String::toUpperCase)
+                .map(role -> "ROLE_" + role)   // 🔥 FIX CRÍTICO
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 

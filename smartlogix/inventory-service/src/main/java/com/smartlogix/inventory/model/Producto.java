@@ -1,6 +1,7 @@
 package com.smartlogix.inventory.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,10 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Version
+    private Long version;
+
+    @Column(nullable = false, unique = true)
     private String nombre;
 
     @Column(length = 1000)
@@ -24,63 +28,118 @@ public class Producto {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(nullable = false)
     private String categoria;
 
-    private String imagenUrl;
+    @ElementCollection
+    @CollectionTable(
+            name = "producto_imagenes",
+            joinColumns = @JoinColumn(name = "producto_id")
+    )
+    @Column(name = "imagen_url")
+    private List<String> imagenes = new ArrayList<>();
 
+    @Column(nullable = false)
     private Double ratingPromedio = 0.0;
 
+    @Column(nullable = false)
+    private Integer totalRatings = 0;
+
+    @Column(nullable = false)
     private Integer cantidadVendidos = 0;
 
-    private String estado = "ACTIVO";
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoProducto estado = EstadoProducto.ACTIVO;
 
-    // ⭐ opcional (para extender luego reviews reales)
-    @ElementCollection
-    private List<Double> ratings = new ArrayList<>();
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
+
+    // ===================== CONSTRUCTORES =====================
 
     public Producto() {}
 
-    public Producto(String nombre, String descripcion, Double precio, Integer stock, String categoria, String imagenUrl) {
+    public Producto(String nombre, String descripcion, Double precio,
+                    Integer stock, String categoria, List<String> imagenes) {
+
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.stock = stock;
         this.categoria = categoria;
-        this.imagenUrl = imagenUrl;
-        this.estado = "ACTIVO";
-        this.ratingPromedio = 0.0;
-        this.cantidadVendidos = 0;
+        this.imagenes = (imagenes != null) ? imagenes : new ArrayList<>();
+        this.estado = EstadoProducto.ACTIVO;
     }
 
-    // GETTERS
+    // ===================== LIFECYCLE =====================
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaCreacion = LocalDateTime.now();
+        this.fechaActualizacion = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
+
+        if (this.stock != null && this.stock == 0) {
+            this.estado = EstadoProducto.INACTIVO;
+        }
+    }
+
+    // ===================== MÉTODOS DE NEGOCIO =====================
+
+    public void descontarStock(int cantidad) {
+        if (cantidad <= 0) {
+            throw new RuntimeException("Cantidad inválida");
+        }
+
+        if (this.stock < cantidad) {
+            throw new RuntimeException("Stock insuficiente");
+        }
+
+        this.stock -= cantidad;
+        this.cantidadVendidos += cantidad;
+
+        if (this.stock == 0) {
+            this.estado = EstadoProducto.INACTIVO;
+        }
+    }
+
+    public void agregarRating(Double rating) {
+        double total = this.ratingPromedio * this.totalRatings;
+        total += rating;
+
+        this.totalRatings++;
+        this.ratingPromedio = total / this.totalRatings;
+    }
+
+    public void reactivar() {
+        this.estado = EstadoProducto.ACTIVO;
+    }
+
+    // ===================== GETTERS =====================
+
     public Long getId() { return id; }
+    public Long getVersion() { return version; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
     public Double getPrecio() { return precio; }
     public Integer getStock() { return stock; }
     public String getCategoria() { return categoria; }
-    public String getImagenUrl() { return imagenUrl; }
+    public List<String> getImagenes() { return imagenes; }
     public Double getRatingPromedio() { return ratingPromedio; }
     public Integer getCantidadVendidos() { return cantidadVendidos; }
-    public String getEstado() { return estado; }
+    public EstadoProducto getEstado() { return estado; }
 
-    // SETTERS
+    // ===================== SETTERS =====================
+
     public void setNombre(String nombre) { this.nombre = nombre; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public void setPrecio(Double precio) { this.precio = precio; }
     public void setStock(Integer stock) { this.stock = stock; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
-    public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
-    public void setRatingPromedio(Double ratingPromedio) { this.ratingPromedio = ratingPromedio; }
-    public void setCantidadVendidos(Integer cantidadVendidos) { this.cantidadVendidos = cantidadVendidos; }
-    public void setEstado(String estado) { this.estado = estado; }
-
-    // 🔥 lógica interna simple de rating
-    public void agregarRating(Double rating) {
-        this.ratings.add(rating);
-        this.ratingPromedio = this.ratings.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
-    }
+    public void setImagenes(List<String> imagenes) { this.imagenes = imagenes; }
+    public void setEstado(EstadoProducto estado) { this.estado = estado; }
 }
