@@ -13,10 +13,8 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
 
-        // 1️⃣ primero permissions (Auth0 recomendado)
         List<String> roles = jwt.getClaimAsStringList("permissions");
 
-        // 2️⃣ fallback a scope (tu token actual)
         if (roles == null || roles.isEmpty()) {
             String scope = jwt.getClaimAsString("scope");
             roles = (scope != null) ? List.of(scope.split(" ")) : List.of();

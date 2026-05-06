@@ -16,8 +16,7 @@ public class AudienceValidator implements OAuth2TokenValidator<Jwt> {
 
         if (jwt.getAudience() == null || jwt.getAudience().isEmpty()) {
             return OAuth2TokenValidatorResult.failure(
-                    new OAuth2Error("invalid_token", "Missing audience", null)
-            );
+                    new OAuth2Error("invalid_token", "Missing audience", null));
         }
 
         if (jwt.getAudience().contains(audience)) {
@@ -25,7 +24,6 @@ public class AudienceValidator implements OAuth2TokenValidator<Jwt> {
         }
 
         return OAuth2TokenValidatorResult.failure(
-                new OAuth2Error("invalid_token", "Invalid audience", null)
-        );
+                new OAuth2Error("invalid_token", "Invalid audience", null));
     }
 }
