@@ -1,7 +1,7 @@
 package com.smartlogix.pedidos.service;
 
 import com.smartlogix.pedidos.model.Pedido;
-import com.smartlogix.pedidos.dto.PedidoDTO;
+import com.smartlogix.pedidos.dto.PedidoRequestDTO;
 
 import java.util.List;
 
@@ -9,11 +9,11 @@ public interface PedidoService {
 
     List<Pedido> listar();
 
-    Pedido crearDesdeDTO(PedidoDTO dto);
+    Pedido crearDesdeRequest(PedidoRequestDTO dto);
 
     Pedido obtener(Long id);
 
-    Pedido actualizarDesdeDTO(Long id, PedidoDTO dto);
+    Pedido actualizarDesdeRequest(Long id, PedidoRequestDTO dto);
 
     Pedido cerrar(Long id);
 
