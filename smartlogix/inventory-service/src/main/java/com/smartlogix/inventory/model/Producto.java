@@ -91,6 +91,7 @@ public class Producto {
     // ===================== MÉTODOS DE NEGOCIO =====================
 
     public void descontarStock(int cantidad) {
+
         if (cantidad <= 0) {
             throw new RuntimeException("Cantidad inválida");
         }
@@ -108,6 +109,7 @@ public class Producto {
     }
 
     public void agregarRating(Double rating) {
+
         double total = this.ratingPromedio * this.totalRatings;
         total += rating;
 
@@ -121,25 +123,85 @@ public class Producto {
 
     // ===================== GETTERS =====================
 
-    public Long getId() { return id; }
-    public Long getVersion() { return version; }
-    public String getNombre() { return nombre; }
-    public String getDescripcion() { return descripcion; }
-    public Double getPrecio() { return precio; }
-    public Integer getStock() { return stock; }
-    public String getCategoria() { return categoria; }
-    public List<String> getImagenes() { return imagenes; }
-    public Double getRatingPromedio() { return ratingPromedio; }
-    public Integer getCantidadVendidos() { return cantidadVendidos; }
-    public EstadoProducto getEstado() { return estado; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public Double getPrecio() {
+        return precio;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public List<String> getImagenes() {
+        return imagenes;
+    }
+
+    public Double getRatingPromedio() {
+        return ratingPromedio;
+    }
+
+    public Integer getCantidadVendidos() {
+        return cantidadVendidos;
+    }
+
+    public EstadoProducto getEstado() {
+        return estado;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public LocalDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
 
     // ===================== SETTERS =====================
 
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-    public void setPrecio(Double precio) { this.precio = precio; }
-    public void setStock(Integer stock) { this.stock = stock; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-    public void setImagenes(List<String> imagenes) { this.imagenes = imagenes; }
-    public void setEstado(EstadoProducto estado) { this.estado = estado; }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public void setPrecio(Double precio) {
+        this.precio = precio;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public void setImagenes(List<String> imagenes) {
+        this.imagenes = imagenes;
+    }
+
+    public void setEstado(EstadoProducto estado) {
+        this.estado = estado;
+    }
 }

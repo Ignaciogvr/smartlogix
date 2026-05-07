@@ -6,11 +6,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CircuitBreakerConfigBean {
+public class CircuitBreakerConfig {
 
     private final CircuitBreakerFactory<?, ?> circuitBreakerFactory;
 
-    public CircuitBreakerConfigBean(CircuitBreakerFactory<?, ?> circuitBreakerFactory) {
+    public CircuitBreakerConfig(CircuitBreakerFactory<?, ?> circuitBreakerFactory) {
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 

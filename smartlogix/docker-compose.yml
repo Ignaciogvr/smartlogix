@@ -31,7 +31,7 @@ services:
     networks:
       - smartlogix-net
 
-  # ⚡ KAFKA (FIX IMPORTANTE)
+  # ⚡ KAFKA
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
@@ -63,7 +63,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
     networks:
       - smartlogix-net
 
@@ -81,7 +83,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pedidos_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
     networks:
       - smartlogix-net
 
@@ -98,6 +102,25 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/usuarios_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+
+    networks:
+      - smartlogix-net
+
+  # 🌐 BFF SERVICE
+  bff-service:
+    build: ./bff-service
+    container_name: bff-service
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - inventory-service
+      - pedidos-service
+      - usuarios-service
+    environment:
+      SERVICES_INVENTORY_URL: http://inventory-service:8081
+      SERVICES_PEDIDOS_URL: http://pedidos-service:8082
+      SERVICES_USUARIOS_URL: http://usuarios-service:8083
     networks:
       - smartlogix-net
 
