@@ -1,4 +1,4 @@
-package com.smartlogix.pedidos.producer.service;
+package com.smartlogix.pedidos.kafka.producer;
 
 import com.smartlogix.pedidos.event.CompraEvent;
 import org.slf4j.Logger;

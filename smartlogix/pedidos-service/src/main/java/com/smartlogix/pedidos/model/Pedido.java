@@ -25,15 +25,19 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    // ✅ FIX CRÍTICO: inicializar lista + orphanRemoval
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    // ✅ detalles del pedido
+    @OneToMany(
+            mappedBy = "pedido",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @JsonManagedReference
     private List<DetallePedido> detalles = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         this.fecha = LocalDateTime.now();
-        this.estado = EstadoPedido.ABIERTO;
+        this.estado = EstadoPedido.PENDIENTE;
     }
 
     public Long getId() {

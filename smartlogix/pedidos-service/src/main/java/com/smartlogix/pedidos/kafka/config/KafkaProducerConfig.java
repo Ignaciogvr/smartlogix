@@ -1,4 +1,4 @@
-package com.smartlogix.pedidos.producer.config;
+package com.smartlogix.pedidos.kafka.config;
 
 import com.smartlogix.pedidos.event.CompraEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -19,7 +19,8 @@ public class KafkaProducerConfig {
 
         Map<String, Object> config = new HashMap<>();
 
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 

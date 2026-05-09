@@ -1,23 +1,36 @@
 package com.smartlogix.pedidos.service;
 
-import com.smartlogix.pedidos.model.Pedido;
 import com.smartlogix.pedidos.dto.PedidoRequestDTO;
+import com.smartlogix.pedidos.model.Pedido;
 
 import java.util.List;
 
 public interface PedidoService {
 
-    List<Pedido> listar();
+    // ================= CRUD CLIENTE =================
 
-    Pedido crearDesdeRequest(PedidoRequestDTO dto);
+    Pedido crearDesdeRequest(
+            PedidoRequestDTO dto
+    );
 
     Pedido obtener(Long id);
 
-    Pedido actualizarDesdeRequest(Long id, PedidoRequestDTO dto);
-
-    Pedido cerrar(Long id);
+    Pedido actualizarDesdeRequest(
+            Long id,
+            PedidoRequestDTO dto
+    );
 
     void eliminar(Long id);
 
-    List<Pedido> porUsuario(String usuarioId);
+    // ================= CLIENTE =================
+
+    List<Pedido> porUsuario(
+            String usuarioId
+    );
+
+    Pedido pagar(Long id);
+
+    Pedido cancelar(Long id);
+
+    Pedido reactivar(Long id);
 }

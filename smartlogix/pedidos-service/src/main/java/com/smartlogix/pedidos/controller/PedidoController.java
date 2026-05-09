@@ -25,25 +25,8 @@ public class PedidoController {
         this.service = service;
     }
 
-    // ================= LISTAR =================
-    @GetMapping
-    public ResponseEntity<ApiResponse> listar() {
+    // ================= CREAR PEDIDO =================
 
-        List<PedidoResponseDTO> pedidos = service.listar()
-                .stream()
-                .map(PedidoMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Lista de pedidos",
-                        pedidos
-                )
-        );
-    }
-
-    // ================= CREAR =================
     @PostMapping
     public ResponseEntity<ApiResponse> crear(
             @Valid @RequestBody PedidoRequestDTO dto
@@ -61,7 +44,8 @@ public class PedidoController {
                 );
     }
 
-    // ================= OBTENER =================
+    // ================= OBTENER PEDIDO =================
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> obtener(
             @PathVariable Long id
@@ -78,7 +62,8 @@ public class PedidoController {
         );
     }
 
-    // ================= ACTUALIZAR =================
+    // ================= ACTUALIZAR PEDIDO =================
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> actualizar(
             @PathVariable Long id,
@@ -90,47 +75,50 @@ public class PedidoController {
         return ResponseEntity.ok(
                 new ApiResponse(
                         200,
-                        "Pedido actualizado",
+                        "Pedido actualizado correctamente",
                         PedidoMapper.toDTO(actualizado)
                 )
         );
     }
 
-    // ================= CERRAR =================
-    @PutMapping("/{id}/cerrar")
-    public ResponseEntity<ApiResponse> cerrar(
+    // ================= PAGAR PEDIDO =================
+
+    @PutMapping("/{id}/pagar")
+    public ResponseEntity<ApiResponse> pagar(
             @PathVariable Long id
     ) {
 
-        Pedido pedido = service.cerrar(id);
+        Pedido pedido = service.pagar(id);
 
         return ResponseEntity.ok(
                 new ApiResponse(
                         200,
-                        "Pedido cerrado y stock actualizado",
+                        "Pedido pagado correctamente",
                         PedidoMapper.toDTO(pedido)
                 )
         );
     }
 
-    // ================= ELIMINAR =================
+    // ================= CANCELAR PEDIDO =================
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> eliminar(
+    public ResponseEntity<ApiResponse> cancelar(
             @PathVariable Long id
     ) {
 
-        service.eliminar(id);
+        service.cancelar(id);
 
         return ResponseEntity.ok(
                 new ApiResponse(
                         200,
-                        "Pedido cerrado (eliminación lógica)",
+                        "Pedido cancelado correctamente",
                         null
                 )
         );
     }
 
-    // ================= POR USUARIO =================
+    // ================= MIS PEDIDOS =================
+
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<ApiResponse> porUsuario(
             @PathVariable String usuarioId
