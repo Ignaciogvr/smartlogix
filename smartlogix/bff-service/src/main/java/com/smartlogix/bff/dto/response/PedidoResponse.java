@@ -1,4 +1,4 @@
-package com.smartlogix.bff.dto;
+package com.smartlogix.bff.dto.response;
 
 import java.time.LocalDateTime;
 

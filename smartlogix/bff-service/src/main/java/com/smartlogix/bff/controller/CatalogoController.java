@@ -14,38 +14,35 @@ public class CatalogoController {
         this.inventoryClient = inventoryClient;
     }
 
-    // 🔓 LISTAR PRODUCTOS
     @GetMapping("/productos")
     public ResponseEntity<Object> productos() {
-        return ResponseEntity.ok(
-                inventoryClient.listarProductos()
-        );
+        return ResponseEntity.ok(inventoryClient.listarProductos());
     }
 
-    // 🔓 PRODUCTO POR ID
     @GetMapping("/productos/{id}")
     public ResponseEntity<Object> producto(@PathVariable Long id) {
-        return ResponseEntity.ok(
-                inventoryClient.obtenerProducto(id)
-        );
+        return ResponseEntity.ok(inventoryClient.obtenerProducto(id));
     }
 
-    // 🔓 PRODUCTOS ACTIVOS
     @GetMapping("/productos/activos")
     public ResponseEntity<Object> activos() {
-        return ResponseEntity.ok(
-                inventoryClient.productosActivos()
-        );
+        return ResponseEntity.ok(inventoryClient.productosActivos());
     }
 
-    // 🔓 POR CATEGORIA
     @GetMapping("/productos/categoria/{categoria}")
-    public ResponseEntity<Object> categoria(
-            @PathVariable String categoria
-    ) {
+    public ResponseEntity<Object> categoria(@PathVariable String categoria) {
+        return ResponseEntity.ok(inventoryClient.porCategoria(categoria));
+    }
 
-        return ResponseEntity.ok(
-                inventoryClient.porCategoria(categoria)
-        );
+    // 🔥 NUEVO
+    @GetMapping("/productos/destacados")
+    public ResponseEntity<Object> destacados() {
+        return ResponseEntity.ok(inventoryClient.destacados());
+    }
+
+    // 🔥 NUEVO
+    @GetMapping("/productos/stock/{id}")
+    public ResponseEntity<Object> stock(@PathVariable Long id) {
+        return ResponseEntity.ok(inventoryClient.stock(id));
     }
 }

@@ -1,4 +1,4 @@
-package com.smartlogix.bff.exception;
+package com.smartlogix.bff.dto.common;
 
 public class ApiResponse<T> {
 
