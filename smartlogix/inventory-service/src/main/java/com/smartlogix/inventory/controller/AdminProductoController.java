@@ -21,13 +21,8 @@ public class AdminProductoController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse> crear(@RequestBody ProductoCreateRequest req) {
-
         return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Producto creado",
-                        service.crear(req)
-                )
+                new ApiResponse(200, "Producto creado", service.crear(req))
         );
     }
 
@@ -38,52 +33,33 @@ public class AdminProductoController {
             @RequestBody ProductoUpdateRequest req) {
 
         return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Producto actualizado",
-                        service.actualizar(id, req)
-                )
+                new ApiResponse(200, "Producto actualizado", service.actualizar(id, req))
         );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> eliminar(@PathVariable Long id) {
-
         service.eliminar(id);
 
         return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Producto eliminado",
-                        null
-                )
+                new ApiResponse(200, "Producto eliminado", null)
         );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/reactivar")
     public ResponseEntity<ApiResponse> reactivar(@PathVariable Long id) {
-
         return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Producto reactivado",
-                        service.reactivar(id)
-                )
+                new ApiResponse(200, "Producto reactivado", service.reactivar(id))
         );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bajo-stock")
     public ResponseEntity<ApiResponse> bajoStock() {
-
         return ResponseEntity.ok(
-                new ApiResponse(
-                        200,
-                        "Productos con bajo stock",
-                        service.bajoStock()
-                )
+                new ApiResponse(200, "Productos con bajo stock", service.bajoStock())
         );
     }
 }

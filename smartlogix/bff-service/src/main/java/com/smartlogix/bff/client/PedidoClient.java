@@ -1,9 +1,10 @@
 package com.smartlogix.bff.client;
 
-import com.smartlogix.bff.dto.CompraRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.smartlogix.bff.dto.request.CompraRequest;
 
 @Component
 public class PedidoClient {

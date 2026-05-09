@@ -1,28 +1,21 @@
 package com.smartlogix.inventory.controller;
 
-
 import com.smartlogix.inventory.exception.ApiResponse;
 import com.smartlogix.inventory.service.ProductoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/productos")
 public class ProductoController {
 
-
     private final ProductoService service;
-
 
     public ProductoController(ProductoService service) {
         this.service = service;
     }
 
-
-    // 🔓 PUBLICO
-
-
+    // 🔓 LISTAR PRODUCTOS
     @GetMapping
     public ResponseEntity<ApiResponse> listar() {
         return ResponseEntity.ok(
@@ -30,7 +23,7 @@ public class ProductoController {
         );
     }
 
-
+    // 🔓 ACTIVOS
     @GetMapping("/activos")
     public ResponseEntity<ApiResponse> activos() {
         return ResponseEntity.ok(
@@ -38,7 +31,7 @@ public class ProductoController {
         );
     }
 
-
+    // 🔓 DETALLE PRODUCTO
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(
@@ -46,11 +39,27 @@ public class ProductoController {
         );
     }
 
-
+    // 🔓 POR CATEGORÍA
     @GetMapping("/categoria/{categoria}")
     public ResponseEntity<ApiResponse> porCategoria(@PathVariable String categoria) {
         return ResponseEntity.ok(
                 new ApiResponse(200, "Productos por categoría", service.porCategoria(categoria))
+        );
+    }
+
+    // 🔥 DESTACADOS (HOME FRONT)
+    @GetMapping("/destacados")
+    public ResponseEntity<ApiResponse> destacados() {
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Productos destacados", service.destacados())
+        );
+    }
+
+    // 🔥 STOCK (solo lectura)
+    @GetMapping("/stock/{id}")
+    public ResponseEntity<ApiResponse> stock(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Stock del producto", service.stock(id))
         );
     }
 }

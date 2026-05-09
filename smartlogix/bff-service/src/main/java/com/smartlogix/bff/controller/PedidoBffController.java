@@ -1,7 +1,8 @@
 package com.smartlogix.bff.controller;
 
 import com.smartlogix.bff.client.PedidoClient;
-import com.smartlogix.bff.dto.CompraRequest;
+import com.smartlogix.bff.dto.request.CompraRequest;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

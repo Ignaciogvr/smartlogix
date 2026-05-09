@@ -3,6 +3,7 @@ package com.smartlogix.inventory.service.impl;
 import com.smartlogix.inventory.dto.ProductoCreateRequest;
 import com.smartlogix.inventory.dto.ProductoResponse;
 import com.smartlogix.inventory.dto.ProductoUpdateRequest;
+import com.smartlogix.inventory.mapper.ProductoMapper;
 import com.smartlogix.inventory.model.EstadoProducto;
 import com.smartlogix.inventory.model.Producto;
 import com.smartlogix.inventory.repository.ProductoRepository;
@@ -21,32 +22,18 @@ public class ProductoServiceImpl implements ProductoService {
         this.repo = repo;
     }
 
-    // ===================== MAPPER =====================
-    private ProductoResponse map(Producto p) {
-        return new ProductoResponse(
-                p.getId(),
-                p.getNombre(),
-                p.getDescripcion(),
-                p.getPrecio(),
-                p.getStock(),
-                p.getCategoria(),
-                p.getImagenes(),
-                p.getRatingPromedio(),
-                p.getCantidadVendidos()
-        );
-    }
-
     private Producto getOrThrow(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
     // ===================== READ =====================
+
     @Override
     public List<ProductoResponse> listar() {
         return repo.findByEstado(EstadoProducto.ACTIVO)
                 .stream()
-                .map(this::map)
+                .map(ProductoMapper::toResponse)
                 .toList();
     }
 
@@ -57,12 +44,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoResponse> porCategoria(String categoria) {
+
         if (categoria == null || categoria.isBlank())
             throw new RuntimeException("Categoría inválida");
 
         return repo.findByCategoriaAndEstado(categoria, EstadoProducto.ACTIVO)
                 .stream()
-                .map(this::map)
+                .map(ProductoMapper::toResponse)
                 .toList();
     }
 
@@ -70,11 +58,12 @@ public class ProductoServiceImpl implements ProductoService {
     public List<ProductoResponse> bajoStock() {
         return repo.findByStockLessThan(5)
                 .stream()
-                .map(this::map)
+                .map(ProductoMapper::toResponse)
                 .toList();
     }
 
     // ===================== CREATE =====================
+
     @Override
     public ProductoResponse crear(ProductoCreateRequest req) {
 
@@ -93,19 +82,13 @@ public class ProductoServiceImpl implements ProductoService {
         if (req.getImagenes() != null && req.getImagenes().size() > 5)
             throw new RuntimeException("Máximo 5 imágenes");
 
-        Producto p = new Producto(
-                req.getNombre(),
-                req.getDescripcion(),
-                req.getPrecio(),
-                req.getStock(),
-                req.getCategoria(),
-                req.getImagenes() != null ? req.getImagenes() : List.of()
-        );
+        Producto p = ProductoMapper.toEntity(req);
 
-        return map(repo.save(p));
+        return ProductoMapper.toResponse(repo.save(p));
     }
 
     // ===================== UPDATE =====================
+
     @Override
     public ProductoResponse actualizar(Long id, ProductoUpdateRequest req) {
 
@@ -124,16 +107,18 @@ public class ProductoServiceImpl implements ProductoService {
             p.setImagenes(req.getImagenes());
         }
 
-        return map(repo.save(p));
+        return ProductoMapper.toResponse(repo.save(p));
     }
 
     // ===================== GET =====================
+
     @Override
     public ProductoResponse obtener(Long id) {
-        return map(getOrThrow(id));
+        return ProductoMapper.toResponse(getOrThrow(id));
     }
 
-    // ===================== DELETE (SOFT DELETE) =====================
+    // ===================== DELETE =====================
+
     @Override
     public void eliminar(Long id) {
         Producto p = getOrThrow(id);
@@ -145,10 +130,11 @@ public class ProductoServiceImpl implements ProductoService {
     public ProductoResponse reactivar(Long id) {
         Producto p = getOrThrow(id);
         p.setEstado(EstadoProducto.ACTIVO);
-        return map(repo.save(p));
+        return ProductoMapper.toResponse(repo.save(p));
     }
 
     // ===================== VALIDACIÓN =====================
+
     @Override
     public ProductoResponse validarProducto(Long id, Integer cantidad) {
 
@@ -163,10 +149,11 @@ public class ProductoServiceImpl implements ProductoService {
         if (p.getStock() < cantidad)
             throw new RuntimeException("Stock insuficiente");
 
-        return map(p);
+        return ProductoMapper.toResponse(p);
     }
 
     // ===================== STOCK =====================
+
     @Transactional
     @Override
     public void descontarStock(Long id, Integer cantidad, String usuarioId) {
@@ -176,13 +163,13 @@ public class ProductoServiceImpl implements ProductoService {
         if (p.getEstado() != EstadoProducto.ACTIVO)
             throw new RuntimeException("Producto inactivo");
 
-        // 👇 aquí está la corrección importante
         p.descontarStock(cantidad);
 
         repo.save(p);
     }
 
     // ===================== RATING =====================
+
     @Override
     public void agregarRating(Long id, Double rating) {
 
@@ -192,6 +179,26 @@ public class ProductoServiceImpl implements ProductoService {
         Producto p = getOrThrow(id);
 
         p.agregarRating(rating);
+
         repo.save(p);
+    }
+
+    // ===================== 🔥 NUEVOS MÉTODOS QUE TE FALTABAN =====================
+
+    @Override
+    public List<ProductoResponse> destacados() {
+
+        return repo.findAll()
+                .stream()
+                .sorted((a, b) -> b.getCantidadVendidos()
+                        .compareTo(a.getCantidadVendidos()))
+                .limit(5)
+                .map(ProductoMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public Integer stock(Long id) {
+        return getOrThrow(id).getStock();
     }
 }

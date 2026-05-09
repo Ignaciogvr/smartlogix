@@ -24,4 +24,9 @@ public interface ProductoService {
     void descontarStock(Long id, Integer cantidad, String usuarioId);
 
     void agregarRating(Long id, Double rating);
+
+    // 🔥 NUEVO (lo que te faltaba)
+    List<ProductoResponse> destacados();
+
+    Integer stock(Long id);
 }
