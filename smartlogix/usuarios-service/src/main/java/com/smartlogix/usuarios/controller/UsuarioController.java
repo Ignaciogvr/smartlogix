@@ -45,6 +45,20 @@ public class UsuarioController {
                 .body(new ApiResponse(201, "Usuario creado/obtenido", usuario));
     }
 
+    // 👤 PERFIL (IMPORTANTE)
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN')")
+    public ResponseEntity<ApiResponse> miPerfil(Authentication auth) {
+
+        Jwt jwt = (Jwt) auth.getPrincipal();
+        String auth0Id = jwt.getSubject();
+
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Perfil del usuario",
+                        service.obtenerPorUserId(auth0Id))
+        );
+    }
+
     // 🔥 LISTAR (ADMIN)
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -63,7 +77,7 @@ public class UsuarioController {
         );
     }
 
-    // 🔥 EXISTS
+    // 🔥 EXISTS (BFF interno)
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> exists(@PathVariable String id) {
         return ResponseEntity.ok(service.existePorAuth0Id(id));
@@ -73,7 +87,7 @@ public class UsuarioController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','CLIENTE')")
     public ResponseEntity<ApiResponse> actualizar(@PathVariable String id,
-                                                  @RequestBody Map<String, String> body) {
+                @RequestBody Map<String, String> body) {
 
         Usuario datos = new Usuario();
 
@@ -86,15 +100,30 @@ public class UsuarioController {
         }
 
         return ResponseEntity.ok(
-                new ApiResponse(200, "Actualizado", service.actualizarPorUserId(id, datos))
+                new ApiResponse(200, "Actualizado",
+                        service.actualizarPorUserId(id, datos))
         );
     }
 
-    // 🔥 ELIMINAR
+    // 🔥 ELIMINAR (soft delete)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse> eliminar(@PathVariable String id) {
         service.eliminarPorUserId(id);
         return ResponseEntity.ok(new ApiResponse(200, "Eliminado", null));
+    }
+
+    // 🔄 REACTIVAR (ADMIN)
+    @PutMapping("/{id}/reactivar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> reactivar(@PathVariable String id) {
+
+        Usuario usuario = service.obtenerPorUserId(id);
+        usuario.setEstado("ACTIVO");
+
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Usuario reactivado",
+                        service.actualizarPorUserId(id, usuario))
+        );
     }
 }
