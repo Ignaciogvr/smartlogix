@@ -5,8 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
+import java.time.Duration;
 
 @Component
 public class UserClient {
@@ -18,22 +17,22 @@ public class UserClient {
                       CircuitBreakerRegistry registry) {
 
         this.webClient = builder
-                .baseUrl("http://usuarios-service:8080")
+                .baseUrl("http://usuarios-service:8083")
                 .build();
 
         this.circuitBreaker = registry.circuitBreaker("user-service");
     }
 
-    public CompletableFuture<Boolean> validarUsuario(String usuarioId) {
+    public Boolean validarUsuario(String authHeader) {
 
-        Supplier<CompletableFuture<Boolean>> supplier = () ->
+        return circuitBreaker.executeSupplier(() ->
                 webClient.get()
-                        .uri("/usuarios/exists/{id}", usuarioId)
+                        .uri("/usuarios/me")
+                        .header("Authorization", authHeader)
                         .retrieve()
                         .bodyToMono(Boolean.class)
-                        .timeout(java.time.Duration.ofSeconds(3))
-                        .toFuture();
-
-        return circuitBreaker.executeSupplier(supplier);
+                        .timeout(Duration.ofSeconds(2))
+                        .block()
+        );
     }
 }

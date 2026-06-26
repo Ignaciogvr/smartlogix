@@ -3,7 +3,11 @@ package com.smartlogix.usuarios.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", indexes = {
+    @Index(name = "idx_usuarios_auth0_id", columnList = "auth0_id"),
+    @Index(name = "idx_usuarios_email", columnList = "email"),
+    @Index(name = "idx_usuarios_estado", columnList = "estado")
+})
 public class Usuario {
 
     @Id
@@ -15,7 +19,7 @@ public class Usuario {
     @Column(unique = true)
     private String email;
 
-    @Column(unique = true)
+    @Column(name = "auth0_id", unique = true)
     private String auth0Id;
 
     private String estado = "ACTIVO";

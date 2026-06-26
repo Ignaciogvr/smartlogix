@@ -1,5 +1,12 @@
 package com.smartlogix.bff.exception;
 
-public class BffException {
-    
+public class BffException extends RuntimeException {
+
+    public BffException(String message) {
+        super(message);
+    }
+
+    public BffException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

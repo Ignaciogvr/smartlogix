@@ -8,7 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "pedidos")
+@Table(name = "pedidos", indexes = {
+    @Index(name = "idx_pedidos_usuario_id", columnList = "usuario_id"),
+    @Index(name = "idx_pedidos_estado", columnList = "estado"),
+    @Index(name = "idx_pedidos_fecha", columnList = "fecha DESC"),
+    @Index(name = "idx_pedidos_usuario_id_fecha", columnList = "usuario_id, fecha DESC")
+})
 public class Pedido {
 
     @Id

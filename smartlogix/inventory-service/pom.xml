@@ -73,6 +73,18 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- 🔁 SPRING RETRY (requerido para @RetryableTopic) -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
+        <!-- 🗄️ FLYWAY (Database Migrations) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
         <!-- 🔐 SECURITY -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

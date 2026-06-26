@@ -14,7 +14,7 @@ RUN mvn clean package -DskipTests
 # =========================
 # ETAPA 2: RUNTIME
 # =========================
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
@@ -22,4 +22,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8082
 
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-Xms64m", "-Xmx256m", "-XX:+UseSerialGC", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.jmx.enabled=false", "-XX:TieredStopAtLevel=1", "-noverify", "-jar", "app.jar"]

@@ -1,15 +1,35 @@
-version: "3.9"
+# SmartLogix — stack completo (Frontend + Backend + Postgres + Kafka)
+#
+# EJECUCIÓN:
+#   docker-compose up -d --build
+#
+# Esto levanta TODO el sistema sin configuración manual:
+#   Frontend Angular (Nginx)  → http://localhost:4200
+#   BFF Gateway               → http://localhost:8080
+#   Inventory Service         → http://localhost:8081
+#   Pedidos Service           → http://localhost:8082
+#   Usuarios Service          → http://localhost:8083
+#   Envío Service             → http://localhost:8084
+#   PostgreSQL                → localhost:5432
+#   Kafka                     → localhost:9092
+#
+# IMPORTANTE: Crea un archivo .env con tus credenciales antes de ejecutar
 
 services:
 
+  # ==================== INFRAESTRUCTURA ====================
+
   postgres:
-    image: postgres:15
+    # OPTIMIZACIÓN: alpine es ~65 MB vs ~370 MB de la imagen estándar
+    image: postgres:15-alpine
     container_name: postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      # OPTIMIZACIÓN: Reducir shared_buffers al mínimo para desarrollo local
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
@@ -17,34 +37,88 @@ services:
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - smartlogix-net
+    # OPTIMIZACIÓN: Eliminar shm_size=1gb innecesario — 64mb es suficiente para dev
+    shm_size: 64mb
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c max_connections=50
+      -c work_mem=4MB
+      -c maintenance_work_mem=32MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=4MB
+      -c synchronous_commit=off
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
-    restart: always
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+      # OPTIMIZACIÓN: Limitar heap de Zookeeper — antes sin límite, ahora 128m
+      KAFKA_HEAP_OPTS: "-Xms64m -Xmx128m"
+      # OPTIMIZACIÓN: Deshabilitar log4j verbose en arranque
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: WARN
+      ZOOKEEPER_TOOLS_LOG4J_LOGLEVEL: WARN
     ports:
       - "2181:2181"
     networks:
       - smartlogix-net
+    healthcheck:
+      test: ["CMD", "cub", "zk-ready", "localhost:2181", "20"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
-    restart: always
+    restart: unless-stopped
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # OPTIMIZACIÓN: Reducir heap de 512m a 256m — suficiente para dev con 1 broker
+      KAFKA_HEAP_OPTS: "-Xms128m -Xmx256m"
+      # OPTIMIZACIÓN: Reducir tamaño de logs de partición para dev
+      KAFKA_LOG_SEGMENT_BYTES: 10485760
+      KAFKA_LOG_RETENTION_BYTES: 52428800
+      KAFKA_LOG_RETENTION_HOURS: 1
+      # OPTIMIZACIÓN: Menos logs verbosos de Kafka
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: WARN
     networks:
       - smartlogix-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ==================== MICROSERVICIOS ====================
 
   inventory-service:
     build: ./inventory-service
@@ -52,15 +126,26 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - postgres
-      - kafka
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
     networks:
       - smartlogix-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
 
   pedidos-service:
     build: ./pedidos-service
@@ -68,15 +153,28 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - postgres
-      - kafka
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pedidos_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
+      AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
     networks:
       - smartlogix-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
 
   usuarios-service:
     build: ./usuarios-service
@@ -84,13 +182,58 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/usuarios_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
+      AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
     networks:
       - smartlogix-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
+  envio-service:
+    build: ./envio-service
+    container_name: envio-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      # OPTIMIZACIÓN: Eliminar depends_on de usuarios-service y pedidos-service
+      # El servicio de envío usa Kafka para comunicación asíncrona — no necesita
+      # esperar que esos servicios estén healthy para arrancar. Spring Boot reintenta
+      # automáticamente las conexiones Feign/WebClient al inicio.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/envio_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
+      AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
+    networks:
+      - smartlogix-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
 
   bff-service:
     build: ./bff-service
@@ -98,15 +241,45 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - inventory-service
-      - pedidos-service
-      - usuarios-service
+      # FIX: BFF solo depende de infraestructura (postgres+kafka).
+      # Los microservicios se contactan via HTTP con reintentos internos de Spring.
+      # Eliminar depends_on de los 4 microservicios rompe el deadlock en cadena.
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       SERVICES_INVENTORY_URL: http://inventory-service:8081
       SERVICES_PEDIDOS_URL: http://pedidos-service:8082
       SERVICES_USUARIOS_URL: http://usuarios-service:8083
+      SERVICES_ENVIOS_URL: http://envio-service:8084
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
     networks:
       - smartlogix-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  # ==================== FRONTEND ====================
+
+  frontend:
+    build:
+      context: ../Frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      bff-service:
+        condition: service_healthy
+    networks:
+      - smartlogix-net
+    restart: unless-stopped
 
 volumes:
   postgres_data:

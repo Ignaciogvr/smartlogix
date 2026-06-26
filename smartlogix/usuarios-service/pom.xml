@@ -43,6 +43,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- 🗄️ FLYWAY (Database Migrations) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
         <!-- 🔐 SEGURIDAD -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -55,16 +61,10 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
-        <!-- 🔥 JWT CORE -->
+        <!-- 🔥 JWT -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
-        </dependency>
-
-        <!-- 🌐 WEBCLIENT (para llamar Auth0 Management API) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
         <!-- 🧪 TEST -->
@@ -74,7 +74,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- ⚡ OPCIONAL: LOMBOK para simplificar código -->
+        <!-- ⚡ LOMBOK -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

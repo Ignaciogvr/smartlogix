@@ -1,0 +1,27 @@
+<configuration>
+
+    <property name="PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [requestId:%X{requestId},usuarioId:%X{usuarioId}] - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ROOT en INFO -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- TU APP -->
+    <logger name="com.smartlogix.usuarios" level="INFO"/>
+
+    <!-- SPRING -->
+    <logger name="org.springframework" level="WARN"/>
+
+    <!-- HIBERNATE/JPA (opcional, si se necesita debug de SQL) -->
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+
+</configuration>

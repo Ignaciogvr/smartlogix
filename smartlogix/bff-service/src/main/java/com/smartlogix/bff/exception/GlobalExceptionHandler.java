@@ -1,51 +1,70 @@
 package com.smartlogix.bff.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.smartlogix.bff.dto.common.ApiResponse;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🔥 RUNTIME
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<?>> handleRuntime(RuntimeException ex) {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-
-        String message = ex.getMessage();
-
-        if (message != null &&
-                message.toLowerCase().contains("no encontrado")) {
-
-            status = HttpStatus.NOT_FOUND;
-        }
-
-        return ResponseEntity
-                .status(status)
-                .body(
-                        new ApiResponse<>(
-                                status.value(),
-                                message,
-                                null
-                        )
-                );
+    @ExceptionHandler(BffException.class)
+    public ResponseEntity<Map<String, Object>> handleBffException(BffException ex) {
+        log.error("[BFF ERROR] BffException: {}", ex.getMessage());
+        return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    // 🔥 ERROR GENERAL
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGeneral(Exception ex) {
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<Map<String, Object>> handleExternal(ExternalServiceException ex) {
+        log.error("[BFF ERROR] ExternalServiceException: {}", ex.getMessage());
+        return buildResponse(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                        new ApiResponse<>(
-                                500,
-                                "Error interno del servidor",
-                                null
-                        )
-                );
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        log.error("[BFF ERROR] ResourceNotFoundException: {}", ex.getMessage());
+        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+        log.error("[BFF ERROR] Exception genérica: {} - StackTrace: {}", ex.getMessage(), getStackTraceAsString(ex));
+        return buildResponse("Error al procesar compra: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(org.springframework.web.reactive.function.client.WebClientResponseException.class)
+    public ResponseEntity<Map<String, Object>> handleWebClientResponse(org.springframework.web.reactive.function.client.WebClientResponseException ex) {
+        log.error("[BFF ERROR] WebClientResponseException: {} - Body: {}", ex.getStatusText(), ex.getResponseBodyAsString());
+        return buildResponse(
+                "Error del microservicio: " + ex.getStatusText() + " - " + ex.getResponseBodyAsString(), 
+                HttpStatus.valueOf(ex.getStatusCode().value())
+        );
+    }
+
+    private ResponseEntity<Map<String, Object>> buildResponse(String message, HttpStatus status) {
+
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+
+        return new ResponseEntity<>(body, status);
+    }
+
+    private String getStackTraceAsString(Exception ex) {
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        ex.printStackTrace(pw);
+        return sw.toString();
     }
 }

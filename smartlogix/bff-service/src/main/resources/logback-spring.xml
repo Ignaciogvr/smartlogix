@@ -2,7 +2,7 @@
 <configuration>
 
     <property name="PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [corrId:%X{correlationId}] - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"/>
 
     <appender name="CONSOLE"
               class="ch.qos.logback.core.ConsoleAppender">

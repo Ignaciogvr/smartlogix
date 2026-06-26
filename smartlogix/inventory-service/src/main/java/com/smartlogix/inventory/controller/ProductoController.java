@@ -55,11 +55,49 @@ public class ProductoController {
         );
     }
 
+    // 🔥 COMENTARIOS
+    @GetMapping("/{id}/comentarios")
+    public ResponseEntity<ApiResponse> obtenerComentarios(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Comentarios del producto", service.obtenerComentarios(id))
+        );
+    }
+
+    @PostMapping("/{id}/comentarios")
+    public ResponseEntity<ApiResponse> agregarComentario(
+            @PathVariable Long id,
+            @RequestBody com.smartlogix.inventory.dto.ComentarioCreateRequest request,
+            @RequestHeader("X-User-Id") String usuarioId,
+            @RequestHeader(value = "X-User-Name", defaultValue = "Usuario") String nombreCliente) {
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Comentario creado", service.agregarComentario(id, request, usuarioId, nombreCliente))
+        );
+    }
+
+    // 🔥 RELACIONADOS
+    @GetMapping("/{id}/relacionados")
+    public ResponseEntity<ApiResponse> productosRelacionados(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Productos relacionados", service.productosRelacionados(id))
+        );
+    }
+
     // 🔥 STOCK (solo lectura)
     @GetMapping("/stock/{id}")
     public ResponseEntity<ApiResponse> stock(@PathVariable Long id) {
         return ResponseEntity.ok(
                 new ApiResponse(200, "Stock del producto", service.stock(id))
+        );
+    }
+
+    @PutMapping("/stock/{id}/reponer")
+    public ResponseEntity<ApiResponse> reponerStock(
+            @PathVariable Long id,
+            @RequestParam Integer cantidad
+    ) {
+        service.reponerStock(id, cantidad);
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Stock repuesto correctamente", null)
         );
     }
 }

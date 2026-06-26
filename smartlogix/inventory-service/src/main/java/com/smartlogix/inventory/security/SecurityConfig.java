@@ -2,6 +2,7 @@ package com.smartlogix.inventory.security;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,23 +20,23 @@ import com.smartlogix.inventory.security.jwt.JwtAuthConverter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String ISSUER =
-            "https://dev-nomnv0fhn3zpzt4t.us.auth0.com/";
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private String issuer;
 
-    private static final String AUDIENCE =
-            "https://smartlogix-api";
+    @Value("${spring.security.oauth2.resourceserver.jwt.audience}")
+    private String audience;
 
     @Bean
     public JwtDecoder jwtDecoder() {
 
         NimbusJwtDecoder jwtDecoder =
-                (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(ISSUER);
+                (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuer);
 
         OAuth2TokenValidator<Jwt> withIssuer =
-                JwtValidators.createDefaultWithIssuer(ISSUER);
+                JwtValidators.createDefaultWithIssuer(issuer);
 
         OAuth2TokenValidator<Jwt> audienceValidator =
-                new AudienceValidator(AUDIENCE);
+                new AudienceValidator(audience);
 
         OAuth2TokenValidator<Jwt> validator =
                 new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
@@ -64,7 +65,10 @@ public class SecurityConfig {
                 // PUBLICO
                 .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
 
-                // ADMIN REAL (IMPORTANTE)
+                // STOCK (M2M + ADMIN)
+                .requestMatchers(HttpMethod.PUT, "/productos/stock/*/reponer").authenticated()
+
+                // ADMIN
                 .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 
                 .anyRequest().authenticated()

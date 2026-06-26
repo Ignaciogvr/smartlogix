@@ -22,11 +22,19 @@ public interface ProductoService {
 
     ProductoResponse validarProducto(Long id, Integer cantidad);
     void descontarStock(Long id, Integer cantidad, String usuarioId);
+    void reponerStock(Long id, Integer cantidad);
 
     void agregarRating(Long id, Double rating);
 
     // 🔥 NUEVO (lo que te faltaba)
     List<ProductoResponse> destacados();
+
+    List<com.smartlogix.inventory.dto.ComentarioResponse> obtenerComentarios(Long id);
+    com.smartlogix.inventory.dto.ComentarioResponse agregarComentario(Long id, com.smartlogix.inventory.dto.ComentarioCreateRequest request, String usuarioId, String nombreCliente);
+    com.smartlogix.inventory.dto.ComentarioResponse actualizarComentario(Long comentarioId, com.smartlogix.inventory.dto.ComentarioUpdateRequest request, String usuarioId);
+    void eliminarComentario(Long comentarioId, String usuarioId);
+
+    List<ProductoResponse> productosRelacionados(Long id);
 
     Integer stock(Long id);
 }

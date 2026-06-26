@@ -4,13 +4,17 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "detalle_pedido")
+@Table(name = "detalle_pedido", indexes = {
+    @Index(name = "idx_detalle_pedido_pedido_id", columnList = "pedido_id"),
+    @Index(name = "idx_detalle_pedido_producto_id", columnList = "producto_id")
+})
 public class DetallePedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "producto_id")
     private Long productoId;
 
     private Integer cantidad;

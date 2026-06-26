@@ -1,49 +1,96 @@
 package com.smartlogix.bff.controller;
 
-import com.smartlogix.bff.client.PedidoClient;
+import com.smartlogix.bff.dto.request.CheckoutRequest;
 import com.smartlogix.bff.dto.request.CompraRequest;
-
+import com.smartlogix.bff.dto.response.PedidoResponse;
+import com.smartlogix.bff.service.PedidoBffService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/bff/pedidos")
+@RequestMapping("/pedidos")
 public class PedidoBffController {
 
-    private final PedidoClient pedidoClient;
+    private final PedidoBffService pedidoService;
 
-    public PedidoBffController(PedidoClient pedidoClient) {
-        this.pedidoClient = pedidoClient;
+    public PedidoBffController(PedidoBffService pedidoService) {
+        this.pedidoService = pedidoService;
     }
 
-    // 🔥 CREAR PEDIDO
+    // =========================
+    // CREAR
+    // =========================
+
     @PostMapping
-    public ResponseEntity<Object> crear(
-            @RequestBody CompraRequest request
-    ) {
-
-        return ResponseEntity.ok(
-                pedidoClient.crearPedido(request)
-        );
+    public ResponseEntity<PedidoResponse> crear(@RequestBody CompraRequest request) {
+        return ResponseEntity.ok(pedidoService.crearPedido(request));
     }
 
-    // 🔥 LISTAR PEDIDOS
+    // =========================
+    // CHECKOUT
+    // =========================
+
+    @PostMapping("/checkout")
+    public ResponseEntity<PedidoResponse> checkout(@RequestBody CheckoutRequest request) {
+        return ResponseEntity.ok(pedidoService.checkout(request));
+    }
+
+    // =========================
+    // LISTAR
+    // =========================
+
     @GetMapping
-    public ResponseEntity<Object> listar() {
-
-        return ResponseEntity.ok(
-                pedidoClient.listarPedidos()
-        );
+    public ResponseEntity<List<PedidoResponse>> listar() {
+        return ResponseEntity.ok(pedidoService.listarPedidos());
     }
 
-    // 🔥 OBTENER PEDIDO
+    // =========================
+    // OBTENER
+    // =========================
+
     @GetMapping("/{id}")
-    public ResponseEntity<Object> obtener(
+    public ResponseEntity<PedidoResponse> obtener(@PathVariable Long id) {
+        return ResponseEntity.ok(pedidoService.obtenerPedido(id));
+    }
+
+    // =========================
+    // ESTADO COMPLETO
+    // =========================
+
+    @GetMapping("/{id}/estado-completo")
+    public ResponseEntity<com.smartlogix.bff.dto.response.EstadoCompletoResponse> obtenerEstadoCompleto(
             @PathVariable Long id
     ) {
+        return ResponseEntity.ok(pedidoService.obtenerEstadoCompleto(id));
+    }
 
-        return ResponseEntity.ok(
-                pedidoClient.obtenerPedido(id)
-        );
+    // =========================
+    // USUARIO
+    // =========================
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<PedidoResponse>> usuario(@PathVariable String usuarioId) {
+        return ResponseEntity.ok(pedidoService.pedidosUsuario(usuarioId));
+    }
+
+    // =========================
+    // PAGAR
+    // =========================
+
+    @PutMapping("/{id}/pagar")
+    public ResponseEntity<PedidoResponse> pagar(@PathVariable Long id) {
+        return ResponseEntity.ok(pedidoService.pagarPedido(id));
+    }
+
+    // =========================
+    // CANCELAR (PUT hacia pedidos-service)
+    // =========================
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelar(@PathVariable Long id) {
+        pedidoService.cancelarPedido(id);
+        return ResponseEntity.noContent().build();
     }
 }

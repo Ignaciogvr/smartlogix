@@ -1,6 +1,6 @@
 package com.smartlogix.inventory.event;
 
-// 📦 Evento de Kafka que representa una compra
+// 📦 Evento de Kafka que representa una compra 
 public class CompraEvent {
 
     private Long productoId;

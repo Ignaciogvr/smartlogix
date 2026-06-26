@@ -1,65 +1,60 @@
 package com.smartlogix.bff.controller;
 
-import com.smartlogix.bff.client.UsuarioClient;
+import com.smartlogix.bff.dto.request.ActualizarPerfilRequest;
+import com.smartlogix.bff.dto.response.UsuarioResponse;
+import com.smartlogix.bff.service.UsuarioBffService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/bff/usuarios")
+@RequestMapping("/usuarios")
 public class UsuarioBffController {
 
-    private final UsuarioClient usuarioClient;
+    private final UsuarioBffService usuarioService;
 
-    public UsuarioBffController(UsuarioClient usuarioClient) {
-        this.usuarioClient = usuarioClient;
+    public UsuarioBffController(
+            UsuarioBffService usuarioService
+    ) {
+        this.usuarioService = usuarioService;
     }
 
-    // 👤 PERFIL LOGUEADO (PRINCIPAL FRONTEND)
+    // =========================
+    // PERFIL AUTH
+    // =========================
+
     @GetMapping("/me")
-    public ResponseEntity<Object> me(@AuthenticationPrincipal Jwt jwt) {
-
-        if (jwt == null) {
-            return ResponseEntity.status(401).body("No autorizado");
-        }
-
-        String auth0Id = jwt.getSubject();
+    public ResponseEntity<UsuarioResponse> miPerfil() {
 
         return ResponseEntity.ok(
-                usuarioClient.obtenerUsuario(auth0Id)
+                usuarioService.miPerfil()
         );
     }
 
-    // 👤 OBTENER USUARIO POR ID
-    @GetMapping("/{auth0Id}")
-    public ResponseEntity<Object> obtener(@PathVariable String auth0Id) {
+    // =========================
+    // UPDATE PERFIL
+    // =========================
+
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioResponse> actualizar(
+            @RequestBody ActualizarPerfilRequest request
+    ) {
+
         return ResponseEntity.ok(
-                usuarioClient.obtenerUsuario(auth0Id)
+                usuarioService.actualizarPerfil(request)
         );
     }
 
-    // 👥 LISTAR USUARIOS
-    @GetMapping
-    public ResponseEntity<Object> listar() {
-        return ResponseEntity.ok(
-                usuarioClient.listarUsuarios()
-        );
-    }
+    // =========================
+    // VALIDAR USUARIO
+    // =========================
 
-    // 🔍 EXISTS (para otros microservicios)
-    @GetMapping("/exists/{auth0Id}")
-    public ResponseEntity<Object> exists(@PathVariable String auth0Id) {
-        return ResponseEntity.ok(
-                usuarioClient.exists(auth0Id)
-        );
-    }
+    @GetMapping("/internal/{usuarioId}")
+    public ResponseEntity<Boolean> existe(
+            @PathVariable String usuarioId
+    ) {
 
-    // 🔄 REACTIVAR USUARIO (ADMIN)
-    @PutMapping("/{auth0Id}/reactivar")
-    public ResponseEntity<Object> reactivar(@PathVariable String auth0Id) {
         return ResponseEntity.ok(
-                usuarioClient.reactivar(auth0Id)
+                usuarioService.existeUsuario(usuarioId)
         );
     }
 }

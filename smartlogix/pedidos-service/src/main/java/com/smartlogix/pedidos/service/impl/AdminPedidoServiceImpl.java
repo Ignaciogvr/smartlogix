@@ -1,5 +1,6 @@
 package com.smartlogix.pedidos.service.impl;
 
+import com.smartlogix.pedidos.event.PedidoEstadoObserver;
 import com.smartlogix.pedidos.model.EstadoPedido;
 import com.smartlogix.pedidos.model.Pedido;
 import com.smartlogix.pedidos.repository.PedidoRepository;
@@ -12,17 +13,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Observer Pattern: usa PedidoEstadoObserver en vez de KafkaProducerService directamente.
+ * El service no conoce Kafka — solo notifica al observer.
+ */
 @Service
 @Transactional
 public class AdminPedidoServiceImpl
         implements AdminPedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final PedidoEstadoObserver observer;
 
     public AdminPedidoServiceImpl(
-            PedidoRepository pedidoRepository
+            PedidoRepository pedidoRepository,
+            PedidoEstadoObserver observer
     ) {
         this.pedidoRepository = pedidoRepository;
+        this.observer = observer;
     }
 
     // ================= LISTAR TODOS =================
@@ -62,7 +70,9 @@ public class AdminPedidoServiceImpl
                 EstadoPedido.EN_PREPARACION
         );
 
-        return pedidoRepository.save(pedido);
+        Pedido saved = pedidoRepository.save(pedido);
+        observer.onEstadoCambiado(saved);
+        return saved;
     }
 
     // ================= ENVIAR PEDIDO =================
@@ -84,7 +94,9 @@ public class AdminPedidoServiceImpl
                 EstadoPedido.ENVIADO
         );
 
-        return pedidoRepository.save(pedido);
+        Pedido saved = pedidoRepository.save(pedido);
+        observer.onEstadoCambiado(saved);
+        return saved;
     }
 
     // ================= ENTREGAR PEDIDO =================
@@ -106,7 +118,9 @@ public class AdminPedidoServiceImpl
                 EstadoPedido.ENTREGADO
         );
 
-        return pedidoRepository.save(pedido);
+        Pedido saved = pedidoRepository.save(pedido);
+        observer.onEstadoCambiado(saved);
+        return saved;
     }
 
     // ================= BUSCAR PEDIDO =================

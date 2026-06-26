@@ -30,7 +30,8 @@ public class PedidoMapper {
                 p.getUsuarioId(),
                 detalles,
                 p.getTotal(),
-                p.getEstado() != null ? p.getEstado().name() : null
+                p.getEstado() != null ? p.getEstado().name() : null,
+                p.getFecha()
         );
     }
 }

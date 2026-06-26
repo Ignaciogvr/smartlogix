@@ -1,5 +1,16 @@
 package com.smartlogix.bff.service;
 
-public class DashboardService {
-    
+import com.smartlogix.bff.dto.response.DashboardResponse;
+
+public interface DashboardService {
+
+    DashboardResponse dashboardAdmin();
+
+    DashboardResponse dashboardUsuario(
+            String usuarioId
+    );
+
+    DashboardResponse dashboardVentas();
+
+    DashboardResponse dashboardLogistica();
 }
