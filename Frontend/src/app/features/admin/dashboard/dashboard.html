@@ -1,0 +1,176 @@
+<section class="dashboard-container animate-fade-in">
+
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1>Panel de <span class="highlight">Control</span></h1>
+      <p>Resumen en tiempo real del estado operativo de SmartLogix</p>
+    </div>
+    <div class="header-actions">
+      <div class="live-indicator">
+        <span class="dot"></span> En vivo
+      </div>
+    </div>
+  </div>
+
+  <!-- Skeleton State -->
+  <div *ngIf="loading" class="stats-grid mb-6">
+    <div *ngFor="let i of [1,2,3,4]" class="stat-card" style="background: var(--bg-card); padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+      <div class="skeleton-box" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+      <div style="flex: 1;">
+        <div class="skeleton-box mb-2" style="height: 16px; width: 60%;"></div>
+        <div class="skeleton-box" style="height: 28px; width: 40%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state mb-6">
+    <span class="error-icon">⚠️</span>
+    <h3>{{ errorMessage }}</h3>
+    <p class="text-muted" *ngIf="isServerError">
+      El servidor devolvió un error. Verifica los logs del BFF y los microservicios.
+    </p>
+    <p class="text-muted" *ngIf="isNetworkError">
+      No se pudo conectar con el servidor. Asegúrate de que el BFF esté corriendo en el puerto 8080.
+    </p>
+    <p class="text-muted" *ngIf="isNotFoundError">
+      El endpoint del dashboard no existe en el BFF. Verifica la configuración de rutas.
+    </p>
+    <button class="btn btn-primary mt-4" (click)="cargarDashboard()">🔄 Reintentar</button>
+  </div>
+
+  <!-- Stats Grid - Solo mostrar si hay datos -->
+  <div *ngIf="!loading && !error && dashboard" class="stats-grid">
+    
+    <!-- Widget: Usuarios -->
+    <div class="stat-card blue-gradient staggered-fade-in" style="animation-delay: 0.1s;">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h3>Usuarios</h3>
+        <h2>{{ dashboard?.totalUsuarios || 0 }}</h2>
+      </div>
+    </div>
+
+    <!-- Widget: Pedidos -->
+    <div class="stat-card purple-gradient staggered-fade-in" style="animation-delay: 0.2s;">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <h3>Pedidos</h3>
+        <h2>{{ dashboard?.totalPedidos || 0 }}</h2>
+      </div>
+    </div>
+
+    <!-- Widget: Productos -->
+    <div class="stat-card green-gradient staggered-fade-in" style="animation-delay: 0.3s;">
+      <div class="stat-icon">🏷️</div>
+      <div class="stat-content">
+        <h3>Productos Activos</h3>
+        <h2>{{ dashboard?.productosActivos || 0 }}</h2>
+      </div>
+    </div>
+
+    <!-- Widget: Envíos -->
+    <div class="stat-card orange-gradient staggered-fade-in" style="animation-delay: 0.4s;">
+      <div class="stat-icon">🚚</div>
+      <div class="stat-content">
+        <h3>Envíos</h3>
+        <h2>{{ dashboard?.pedidosEnviados || 0 }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="actions-section">
+    <h2>Acciones Rápidas</h2>
+    <div class="quick-actions-grid">
+      
+      <a routerLink="/admin/productos" class="action-card">
+        <div class="action-icon">✏️</div>
+        <div class="action-text">
+          <h4>Gestionar Productos</h4>
+          <p>Añade o edita el catálogo</p>
+        </div>
+        <div class="action-arrow">→</div>
+      </a>
+
+      <a routerLink="/admin/pedidos" class="action-card">
+        <div class="action-icon">📋</div>
+        <div class="action-text">
+          <h4>Ver Pedidos</h4>
+          <p>Revisa las transacciones</p>
+        </div>
+        <div class="action-arrow">→</div>
+      </a>
+
+      <a routerLink="/admin/usuarios" class="action-card">
+        <div class="action-icon">🛡️</div>
+        <div class="action-text">
+          <h4>Gestionar Usuarios</h4>
+          <p>Administra los permisos</p>
+        </div>
+        <div class="action-arrow">→</div>
+      </a>
+
+      <a routerLink="/admin/envios" class="action-card">
+        <div class="action-icon">📍</div>
+        <div class="action-text">
+          <h4>Gestionar Envíos</h4>
+          <p>Sigue la logística</p>
+        </div>
+        <div class="action-arrow">→</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Usuarios Recientes -->
+  <div class="usuarios-recientes-section mt-6" *ngIf="!loading && !error">
+    <div class="flex justify-between items-center mb-4">
+      <h2>Usuarios Recientes</h2>
+      <a routerLink="/admin/usuarios" class="text-primary font-semibold" style="text-decoration: none;">Ver todos →</a>
+    </div>
+
+    <div *ngIf="loadingUsuarios" class="card p-4">
+      <div *ngFor="let i of [1,2,3]" class="flex items-center gap-3 mb-3 pb-3" style="border-bottom: 1px solid var(--border);">
+        <div class="skeleton-box" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+        <div class="flex-1">
+          <div class="skeleton-box mb-2" style="height: 16px; width: 60%;"></div>
+          <div class="skeleton-box" style="height: 14px; width: 40%;"></div>
+        </div>
+        <div class="skeleton-box" style="height: 24px; width: 80px; border-radius: 12px;"></div>
+      </div>
+    </div>
+
+    <div *ngIf="!loadingUsuarios && usuariosRecientes.length > 0" class="card">
+      <div class="usuarios-lista">
+        <div *ngFor="let u of usuariosRecientes; let last = last" 
+             class="usuario-item flex items-center gap-3 p-3" 
+             [style.border-bottom]="!last ? '1px solid var(--border)' : 'none'">
+          <div class="usuario-avatar" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-center; color: white; font-weight: bold; font-size: 1.2rem;">
+            {{ (u.nombre || 'U')[0].toUpperCase() }}
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold">{{ u.nombre || 'Sin nombre' }}</div>
+            <div class="text-sm text-muted">{{ u.email }}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="badge" 
+                  [style.background]="u.estado === 'ACTIVO' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'"
+                  [style.color]="u.estado === 'ACTIVO' ? 'var(--success)' : '#ef4444'">
+              {{ u.estado || 'ACTIVO' }}
+            </span>
+            <span class="text-xs text-muted" style="min-width: 80px;">{{ u.rol || 'CLIENTE' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loadingUsuarios && usuariosRecientes.length === 0" class="card p-6 text-center text-muted">
+      <span style="font-size: 2rem;">👥</span>
+      <p class="mt-2 mb-0">No hay usuarios registrados</p>
+    </div>
+  </div>
+
+</section>

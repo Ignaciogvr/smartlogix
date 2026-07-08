@@ -1,0 +1,80 @@
+<div class="ayuda-content-wrapper">
+  
+  <h1 class="page-title">Puntos de entrega</h1>
+  
+  <div class="intro-box">
+    <p>Nuestros Puntos de entrega son lugares habilitados en tiendas Falabella, Sodimac, Tottus, Mall Plaza y locales comerciales. Puedes retirar un pedido o devolver un producto comprado en la plataforma.</p>
+  </div>
+
+  <!-- Sección: En nuestras tiendas (Navegación Interna) -->
+  <section class="store-nav-section">
+    <h2 class="section-title">En nuestras tiendas</h2>
+    <div class="store-nav-grid">
+      <div class="store-nav-card">
+        <span class="icon">🛍️</span>
+        <span class="text">En Mallplaza</span>
+      </div>
+      <div class="store-nav-card">
+        <span class="icon">🏪</span>
+        <span class="text">En locales comerciales</span>
+      </div>
+      <div class="store-nav-card">
+        <span class="icon">⛽</span>
+        <span class="text">En Copec</span>
+      </div>
+      <div class="store-nav-card">
+        <span class="icon">📦</span>
+        <span class="text">En sucursales Chilexpress</span>
+      </div>
+      <div class="store-nav-card">
+        <span class="icon">🏭</span>
+        <span class="text">En Centro Logístico</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista de Puntos y Horarios -->
+  <div class="content-split">
+    
+    <section class="list-section">
+      <h2 class="section-title">Lista de puntos</h2>
+      <ul class="styled-list">
+        <li>En tiendas Falabella, Sodimac y Tottus</li>
+        <li>En Mallplaza</li>
+        <li>En locales comerciales</li>
+        <li>En sucursales Chilexpress</li>
+        <li>En Copec</li>
+      </ul>
+    </section>
+
+    <section class="schedule-section">
+      <h2 class="section-title">Horarios</h2>
+      <div class="schedule-card">
+        <h3>Tiendas Falabella</h3>
+        <p>Lunes a Domingo: 10:00 a 20:00 hrs</p>
+      </div>
+      <div class="schedule-card">
+        <h3>Tiendas Sodimac</h3>
+        <p>Lunes a Domingo: 08:30 a 21:00 hrs</p>
+      </div>
+      <div class="schedule-card">
+        <h3>Tiendas Tottus</h3>
+        <p>Lunes a Domingo: 08:30 a 21:00 hrs</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="feedback-box">
+    <ng-container *ngIf="!feedbackDado">
+      <p class="feedback-title">¿Te ayudó esta información?</p>
+      <div class="feedback-buttons">
+        <button class="btn btn-outline" (click)="darFeedback(true)">👍 Me gusta</button>
+        <button class="btn btn-outline" (click)="darFeedback(false)">👎 No me gusta</button>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="feedbackDado">
+      <p class="feedback-thanks">¡Gracias por tus comentarios! Nos ayudan a mejorar nuestro centro de ayuda.</p>
+    </ng-container>
+  </div>
+
+</div>

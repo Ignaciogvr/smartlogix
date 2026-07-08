@@ -1,0 +1,113 @@
+<section class="chofer-dashboard animate-fade-in">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>🚚 Dashboard <span class="highlight">Chofer</span></h1>
+      <p class="subtitle">Resumen de tus envíos asignados</p>
+    </div>
+    <button class="btn btn-secondary" (click)="cargarDashboard()" [disabled]="loading">
+      <span *ngIf="loading" class="spinner-small mr-1"></span>
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <h3>{{ error }}</h3>
+    <button class="btn btn-primary mt-4" (click)="cargarDashboard()">Reintentar</button>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="stats-grid mb-6">
+    <div *ngFor="let i of [1,2,3,4]" class="stat-card-skeleton">
+      <div class="skeleton-box" style="width:50px; height:50px; border-radius:50%; margin-bottom:12px;"></div>
+      <div class="skeleton-box mb-2" style="height:14px; width:60%;"></div>
+      <div class="skeleton-box" style="height:36px; width:40%;"></div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div *ngIf="!loading && !error" class="stats-grid mb-6">
+
+    <div class="stat-card blue-gradient">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Envíos</div>
+        <div class="stat-value">{{ estadisticas.total }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card orange-gradient">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-info">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value">{{ estadisticas.pendientes }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card purple-gradient">
+      <div class="stat-icon">🚚</div>
+      <div class="stat-info">
+        <div class="stat-label">En Camino</div>
+        <div class="stat-value">{{ estadisticas.enCamino }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card green-gradient">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="stat-label">Entregados</div>
+        <div class="stat-value">{{ estadisticas.entregados }}</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Barra de progreso -->
+  <div *ngIf="!loading && !error && estadisticas.total > 0" class="progress-card mb-6">
+    <div class="flex justify-between mb-2">
+      <span class="font-semibold">Tasa de Entrega</span>
+      <span class="font-bold" style="color: var(--success);">{{ getDeliveryRate() }}%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width]="getDeliveryRate() + '%'"></div>
+    </div>
+    <p class="text-muted text-sm mt-2">{{ estadisticas.entregados }} de {{ estadisticas.total }} envíos completados</p>
+  </div>
+
+  <!-- Envíos Recientes -->
+  <div *ngIf="!loading && !error" class="card p-0" style="overflow:hidden;">
+    <div class="card-header">
+      <h3 class="m-0">🗓️ Envíos Recientes</h3>
+      <a routerLink="/chofer/envios" class="btn btn-secondary btn-sm">Ver todos</a>
+    </div>
+
+    <div *ngIf="enviosRecientes.length === 0" class="empty-state">
+      <div class="empty-icon">🚚</div>
+      <h3>No tienes envíos asignados</h3>
+      <p>Los envíos asignados aparecerán aquí.</p>
+    </div>
+
+    <div *ngIf="enviosRecientes.length > 0" class="envios-list">
+      <div *ngFor="let envio of enviosRecientes" class="envio-row">
+        <div class="envio-id">
+          <span class="font-mono">#{{ envio.id }}</span>
+          <code class="tracking-badge">{{ envio.trackingCode || 'Sin tracking' }}</code>
+        </div>
+        <div class="envio-dest">
+          <span class="text-muted text-sm">{{ envio.direccionEnvio || 'Sin dirección' }}</span>
+        </div>
+        <div class="envio-estado">
+          <span class="badge" [ngClass]="{
+            'badge-warning': envio.estado === 'PENDIENTE',
+            'badge-info': envio.estado === 'EN_CAMINO',
+            'badge-success': envio.estado === 'ENTREGADO'
+          }">{{ envio.estado }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

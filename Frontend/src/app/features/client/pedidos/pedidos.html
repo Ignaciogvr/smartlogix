@@ -1,0 +1,107 @@
+<section class="pedidos-container container animate-fade-in">
+
+  <div class="header mb-6">
+    <h1 class="m-0 mb-2">Mis Pedidos</h1>
+    <p class="text-muted m-0">Revisa el historial y estado de tus compras</p>
+  </div>
+
+  <!-- SKELETON LOADER -->
+  <div *ngIf="loading" class="pedidos-grid">
+    <div class="card pedido-card p-4" *ngFor="let i of [1,2,3,4]">
+      <div class="flex justify-between items-center mb-4 pb-4" style="border-bottom: 1px solid var(--border);">
+        <div>
+          <div class="skeleton-box mb-2" style="height: 24px; width: 120px;"></div>
+          <div class="skeleton-box" style="height: 16px; width: 80px;"></div>
+        </div>
+        <div class="skeleton-box" style="height: 28px; width: 100px; border-radius: 14px;"></div>
+      </div>
+      <div class="flex justify-between items-center mb-2">
+        <div class="skeleton-box" style="height: 20px; width: 60px;"></div>
+        <div class="skeleton-box" style="height: 24px; width: 80px;"></div>
+      </div>
+      <div class="flex justify-between items-center mb-4">
+        <div class="skeleton-box" style="height: 20px; width: 80px;"></div>
+        <div class="skeleton-box" style="height: 24px; width: 60px;"></div>
+      </div>
+      <div class="flex gap-2">
+        <div class="skeleton-box flex-1" style="height: 40px; border-radius: 8px;"></div>
+        <div class="skeleton-box" style="height: 40px; width: 100px; border-radius: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && pedidos && pedidos.length === 0" class="empty-state text-center p-8 mt-6">
+    <span class="empty-icon block mb-4" style="font-size: 4rem;">🛍️</span>
+    <h3 class="mb-2">Aún no tienes pedidos</h3>
+    <p class="text-muted mb-4">Empieza a descubrir nuestros increíbles productos y realiza tu primera compra.</p>
+    <button class="btn btn-primary" routerLink="/catalogo">🛒 Ir al Catálogo</button>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div *ngIf="!loading && errorType" class="error-state text-center p-8 mt-6">
+    <span class="error-icon block mb-4" style="font-size: 4rem; color: var(--danger);">⚠️</span>
+    <h3 class="mb-2" style="color: var(--danger);">Error al cargar pedidos</h3>
+    <p class="text-muted mb-4">{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="cargarPedidos()">🔄 Reintentar</button>
+  </div>
+
+  <!-- DATA GRID -->
+  <div class="pedidos-grid" *ngIf="!loading && pedidos && pedidos.length > 0">
+    <div class="card pedido-card" *ngFor="let pedido of pedidos" style="display: flex; flex-direction: column;">
+
+      <div class="pedido-header flex justify-between items-center mb-4 pb-4" style="border-bottom: 1px solid var(--border);">
+        <div>
+          <h3 class="m-0 mb-1">Pedido #{{ pedido.id }}</h3>
+          <span class="text-muted text-sm">
+            {{ pedido.fecha || pedido.fechaCreacion | date:'mediumDate' }}
+          </span>
+        </div>
+        <span class="badge" 
+              [ngClass]="{
+                'badge-warning': pedido.estado === 'PENDIENTE',
+                'badge-info': pedido.estado === 'EN_PROCESO' || pedido.estado === 'PREPARANDO',
+                'badge-primary': pedido.estado === 'ENVIADO',
+                'badge-success': pedido.estado === 'ENTREGADO',
+                'badge-danger': pedido.estado === 'CANCELADO'
+              }">
+          {{ pedido.estado }}
+        </span>
+      </div>
+
+      <div class="pedido-body mb-6 flex-grow-1">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-muted">Total pagado:</span>
+          <strong class="text-lg">${{ pedido.total | number:'1.2-2' }}</strong>
+        </div>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-muted">Artículos:</span>
+          <strong>{{ pedido.productos?.length || 0 }} ítems</strong>
+        </div>
+        <div class="flex justify-between items-center mb-2" *ngIf="pedido.fechaCompletado">
+          <span class="text-muted">Completado:</span>
+          <strong>{{ pedido.fechaCompletado | date:'mediumDate' }}</strong>
+        </div>
+        <div class="flex justify-between items-center" *ngIf="pedido.pagos && pedido.pagos.length > 0">
+          <span class="text-muted">Pagos:</span>
+          <strong>{{ pedido.pagos.length }} registro(s)</strong>
+        </div>
+      </div>
+
+      <div class="pedido-actions flex gap-2 mt-auto">
+        <button class="btn btn-primary flex-1" (click)="verTracking(pedido)">
+          📍 Seguimiento
+        </button>
+        <button class="btn btn-outline" style="color: var(--danger); border-color: var(--danger)" 
+          *ngIf="puedeCancelar(pedido.estado)" 
+          (click)="cancelarPedido(pedido.id)"
+          [disabled]="accionId === pedido.id">
+          <span *ngIf="accionId === pedido.id" class="spinner-small mr-1"></span>
+          Cancelar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</section>

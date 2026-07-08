@@ -1,0 +1,107 @@
+<div class="header-container">
+  <!-- Módulo de Ubicación (Superior) -->
+  <div class="top-bar">
+    <div class="container">
+      <app-location-picker></app-location-picker>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <!-- LOGO -->
+      <div class="logo-section">
+        <a routerLink="/" class="logo">
+          SmartLogix
+        </a>
+      </div>
+
+      <!-- BUSCADOR GLOBAL -->
+      <div class="search-section">
+        <div class="search-box">
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Buscar productos, marcas y más..." 
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()"
+          >
+          <button class="search-btn" (click)="onSearch()">
+            🔍
+          </button>
+        </div>
+      </div>
+
+      <!-- DERECHA (Carrito y Usuario) -->
+      <div class="navbar-actions">
+        <!-- CARRITO -->
+        <a class="cart-btn" routerLink="/carrito">
+          🛒
+          <span class="badge" *ngIf="cantidadCarrito > 0">
+            {{ cantidadCarrito }}
+          </span>
+        </a>
+
+        <!-- LOGIN -->
+        <ng-container *ngIf="!isLogged">
+          <button class="login-btn" (click)="login()">Iniciar sesión</button>
+        </ng-container>
+
+        <!-- USUARIO -->
+        <ng-container *ngIf="isLogged">
+          <div class="user-section">
+            <span class="user-name">
+              Hola, {{ usuario?.nombre || usuario?.name || usuario?.email || 'Usuario' }}
+            </span>
+            <button class="perfil-btn" routerLink="/perfil">Perfil</button>
+            <button class="logout-btn" (click)="logout()">Salir</button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MENÚ INFERIOR (Categorías) -->
+  <div class="bottom-nav">
+    <div class="container">
+      <ul class="nav-links">
+        <li>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            Inicio
+          </a>
+        </li>
+        <li>
+          <a routerLink="/catalogo" routerLinkActive="active">
+            Catálogo
+          </a>
+        </li>
+        <li *ngIf="isLogged">
+          <a routerLink="/pedidos" routerLinkActive="active">
+            Mis Pedidos
+          </a>
+        </li>
+        <li *ngIf="isLogged">
+          <a routerLink="/tracking" routerLinkActive="active">
+            Tracking
+          </a>
+        </li>
+        <li *ngIf="isAdmin">
+          <a routerLink="/admin/dashboard" routerLinkActive="active">
+            Dashboard
+          </a>
+        </li>
+        
+        <!-- Dropdown Ayuda -->
+        <li class="dropdown-item">
+          <a (click)="toggleHelpMenu()" class="dropdown-trigger" [class.active]="isHelpMenuOpen">
+            Ayuda ▾
+          </a>
+          <div class="dropdown-menu" *ngIf="isHelpMenuOpen">
+            <a routerLink="/ayuda/centro">Centro de ayuda</a>
+            <a routerLink="/ayuda/devoluciones">Devoluciones y cambios</a>
+            <a routerLink="/ayuda/horarios">Horario de tiendas</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

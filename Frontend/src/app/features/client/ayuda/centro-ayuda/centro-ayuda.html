@@ -1,0 +1,125 @@
+<div class="help-center-container">
+  
+  <!-- 1. Buscador principal -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Centro de ayuda</h1>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Escribe una pregunta o palabra clave" 
+          (keyup.enter)="searchQuery = $event.target.value"
+        >
+      </div>
+    </div>
+  </section>
+
+  <div class="main-content container">
+    
+    <!-- 2. Categorías principales -->
+    <section class="categories-section">
+      <div class="categories-grid">
+        <a href="#" class="category-card" *ngFor="let cat of categorias">
+          <span class="category-icon">{{ cat.icono }}</span>
+          <span class="category-title">{{ cat.titulo }}</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 3. Lo más buscado -->
+    <section class="most-searched-section">
+      <h2 class="section-title">Lo más buscado</h2>
+      <ul class="faq-list">
+        <li *ngFor="let faq of masBuscado">
+          <a [href]="faq.link" class="faq-link">{{ faq.texto }}</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 4. Gestión de pedidos -->
+    <section class="orders-section">
+      <div class="orders-card">
+        <div class="orders-info">
+          <h2>Revisa y gestiona tus pedidos</h2>
+          <ul>
+            <li>Sigue tus compras</li>
+            <li>Cancela tus pedidos</li>
+            <li>Haz tus solicitudes de devolución</li>
+            <li>Revisa tus boletas y tickets de cambio</li>
+            <li>Ingresa tus casos</li>
+          </ul>
+        </div>
+        <div class="orders-action">
+          <button class="btn btn-primary" routerLink="/pedidos">Ir a Mis compras</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Contacto y soporte -->
+    <section class="contact-section">
+      <h2 class="section-title text-center">¿Aún necesitas ayuda? Contáctanos</h2>
+      <div class="contact-grid">
+        
+        <!-- WhatsApp -->
+        <div class="contact-card">
+          <div class="contact-icon-wrapper whatsapp">💬</div>
+          <h3>Ayuda por WhatsApp</h3>
+          <p class="contact-number">+56 9 2417 3100</p>
+          <p class="contact-hours">Asistente virtual 24/7 + equipo Lunes a Sábado 09:00 - 19:00</p>
+          <a href="#" class="btn btn-secondary w-100 mt-auto">Iniciar WhatsApp</a>
+        </div>
+
+        <!-- Club de Novios -->
+        <div class="contact-card">
+          <div class="contact-icon-wrapper">💍</div>
+          <h3>Club de Novios / Bebé / Deco</h3>
+          <p class="contact-number">+562 2380 0256</p>
+          <p class="contact-hours">Lunes a Sábado 09:00 - 19:00</p>
+          <a href="#" class="btn btn-secondary w-100 mt-auto">Llamar</a>
+        </div>
+
+        <!-- Banco Falabella -->
+        <div class="contact-card">
+          <div class="contact-icon-wrapper">🏦</div>
+          <h3>Banco Falabella / CMR</h3>
+          <p class="contact-hours">WhatsApp 24 horas</p>
+          <a href="#" class="btn btn-secondary w-100 mt-auto">Iniciar chat</a>
+        </div>
+
+        <!-- Servicio al cliente -->
+        <div class="contact-card">
+          <div class="contact-icon-wrapper">🎧</div>
+          <h3>Servicio al cliente</h3>
+          <p class="contact-number">600 329 2002</p>
+          <p class="contact-hours">Lunes a Sábado 09:00 - 19:00</p>
+          <a href="#" class="btn btn-secondary w-100 mt-auto">Llamar a Servicio al cliente</a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. Redes sociales -->
+    <section class="social-section">
+      <p class="social-title">Síguenos</p>
+      <div class="social-links">
+        <a href="#" class="social-icon facebook">
+          <span class="sr-only">Facebook</span>
+          <!-- SVG Facebook Icon -->
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M12 2.04c-5.5 0-10 4.48-10 10 0 5 3.66 9.15 8.44 9.9v-7H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.23.19 2.23.19v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7C18.34 21.19 22 17.04 22 12.04c0-5.52-4.48-10-10-10z"></path>
+          </svg>
+        </a>
+        <a href="#" class="social-icon instagram">
+          <span class="sr-only">Instagram</span>
+          <!-- SVG Instagram Icon -->
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm8.5 1.5h-8.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5zm-4.25 4a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 1.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.25-3a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z"></path>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+  </div>
+</div>

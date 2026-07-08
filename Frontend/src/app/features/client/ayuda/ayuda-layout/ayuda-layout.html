@@ -1,0 +1,31 @@
+<div class="ayuda-layout-container container">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumb">
+    <a routerLink="/">Home</a>
+    <span class="separator">/</span>
+    <a routerLink="/ayuda/centro">Centro de ayuda</a>
+  </nav>
+
+  <div class="ayuda-layout-grid">
+    <!-- Sidebar -->
+    <aside class="ayuda-sidebar">
+      <h3 class="sidebar-title">Centro de ayuda</h3>
+      <ul class="sidebar-nav">
+        <li><a routerLink="/ayuda/centro" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Centro de ayuda (Inicio)</a></li>
+        <li><a href="#">Preguntas frecuentes</a></li>
+        <li><a href="#">Compras y CMR Puntos</a></li>
+        <li><a href="#">Estado del pedido y entrega</a></li>
+        <li><a routerLink="/ayuda/devoluciones" routerLinkActive="active">Devoluciones y cambios</a></li>
+        <li><a href="#">Garantías y derechos</a></li>
+        <li><a href="#">Mi cuenta</a></li>
+        <li><a href="#">Banco Falabella y tarjeta CMR</a></li>
+        <li><a routerLink="/ayuda/horarios" routerLinkActive="active">Horarios de tiendas y puntos de entrega</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ayuda-main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

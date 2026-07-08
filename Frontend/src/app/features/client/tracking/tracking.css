@@ -1,0 +1,239 @@
+.tracking-container {
+  padding: 2.5rem 1.5rem;
+  min-height: 80vh;
+}
+
+.tracking-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+
+/* Stepper Line style e-commerce */
+.progress-stepper {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 2.5rem 0;
+}
+
+.stepper-line-track {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--border);
+  z-index: 1;
+}
+
+.stepper-line-fill {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--success));
+  z-index: 2;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+  width: 80px;
+  text-align: center;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-card);
+  border: 3px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.step-point.active .step-circle {
+  border-color: var(--success);
+  color: var(--success);
+  background-color: var(--bg-card);
+}
+
+.step-point.current .step-circle {
+  border-color: var(--primary);
+  color: var(--text-primary);
+  transform: scale(1.15);
+  box-shadow: var(--shadow-glow);
+}
+
+.step-label-text {
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.step-point.active .step-label-text {
+  color: var(--success);
+}
+
+.step-point.current .step-label-text {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Product thumbnail */
+.product-tracking-img {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--bg-input);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+
+.product-tracking-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.subtotal-tracking-col {
+  border-left: 1px dashed var(--border);
+  min-width: 110px;
+}
+
+/* Shipment Detailed Timeline */
+.shipment-timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.timeline-step::after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background-color: var(--border);
+  z-index: 1;
+}
+
+.timeline-step:last-child::after {
+  display: none;
+}
+
+.step-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.timeline-step.active .step-marker {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: #111;
+  box-shadow: var(--shadow-glow);
+}
+
+.timeline-step.active::after {
+  background-color: var(--primary);
+}
+
+.step-label {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.timeline-step.active .step-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.envio-details-list {
+  background: var(--bg-main);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.space-y-1 > * + * {
+  margin-top: 0.25rem;
+}
+
+.mb-5 { margin-bottom: 2rem; }
+.mt-4 { margin-top: 1rem; }
+
+@media (max-width: 600px) {
+  .subtotal-tracking-col {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
+    text-align: left;
+    width: 100%;
+  }
+  .progress-stepper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding-left: 1.5rem;
+  }
+  .stepper-line-track {
+    top: 0;
+    left: 20px;
+    width: 4px;
+    height: 100%;
+  }
+  .stepper-line-fill {
+    top: 0;
+    left: 20px;
+    width: 4px;
+  }
+  .step-point {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+    width: 100%;
+  }
+  .step-label-text {
+    margin-top: 0;
+  }
+}

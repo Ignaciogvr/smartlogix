@@ -1,0 +1,74 @@
+<div class="ayuda-content-wrapper">
+  
+  <h1 class="page-title">Devolver o cambiar un producto</h1>
+  
+  <div class="intro-box">
+    <p>Cambiar de opinión está bien. Si necesitas devolver o cambiar un producto aquí te contamos lo que tienes que hacer, dependiendo de su tamaño. Es gratis, solo debes entregar el producto tal como lo recibiste, con todas sus etiquetas.</p>
+  </div>
+
+  <section class="faq-section">
+    <details class="faq-item">
+      <summary class="faq-summary">
+        Entrega tu producto donde más te acomode
+        <span class="icon-expand">+</span>
+      </summary>
+      <div class="faq-content">
+        <p>Puedes acercarte a cualquiera de nuestras sucursales o puntos de entrega autorizados.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-summary">
+        ¿Cómo devuelvo un producto?
+        <span class="icon-expand">+</span>
+      </summary>
+      <div class="faq-content">
+        <p>Para devolver un producto, inicia sesión, ve a "Mis Pedidos", selecciona el pedido y presiona "Solicitar devolución". Luego sigue las instrucciones para entregar el paquete.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-summary">
+        ¿Cómo cambio o reemplazo un producto?
+        <span class="icon-expand">+</span>
+      </summary>
+      <div class="faq-content">
+        <p>Los cambios están sujetos a disponibilidad de stock. En la tienda física puedes realizar el cambio de inmediato presentando la boleta.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-summary">
+        ¿Cuáles son los plazos de reembolso de dinero?
+        <span class="icon-expand">+</span>
+      </summary>
+      <div class="faq-content">
+        <p>El reembolso se procesará a tu método de pago original dentro de 5 a 15 días hábiles después de que recibamos el producto.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-summary">
+        ¿Qué productos tienen condiciones especiales?
+        <span class="icon-expand">+</span>
+      </summary>
+      <div class="faq-content">
+        <p>Ropa interior, productos de higiene, software abierto y alimentos no pueden ser devueltos a menos que presenten fallas de fábrica.</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="feedback-box">
+    <ng-container *ngIf="!feedbackDado">
+      <p class="feedback-title">¿Te ayudó esta información?</p>
+      <div class="feedback-buttons">
+        <button class="btn btn-outline" (click)="darFeedback(true)">👍 Me gusta</button>
+        <button class="btn btn-outline" (click)="darFeedback(false)">👎 No me gusta</button>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="feedbackDado">
+      <p class="feedback-thanks">¡Gracias por tus comentarios! Nos ayudan a mejorar nuestro centro de ayuda.</p>
+    </ng-container>
+  </div>
+
+</div>

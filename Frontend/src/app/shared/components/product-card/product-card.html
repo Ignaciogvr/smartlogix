@@ -1,0 +1,90 @@
+<div class="product-card" (click)="verDetalle()">
+
+  <!-- IMAGEN CON BADGE DE DESCUENTO REAL -->
+  <div class="image-container">
+    <img 
+      [src]="imagenUrl()" 
+      [alt]="producto?.nombre" 
+      loading="lazy" 
+      (error)="onImagenError($event)">
+    
+    <!-- Badge de descuento REAL -->
+    <span *ngIf="esOferta() && descuento() > 0" class="badge badge-discount">
+      -{{ descuento() }}%
+    </span>
+    <span *ngIf="esOferta() && descuento() === 0" class="badge badge-offer">OFERTA</span>
+
+    <span *ngIf="producto?.nuevo && !esOferta()" class="badge badge-new">NUEVO</span>
+
+    <!-- Stock crítico -->
+    <span *ngIf="producto?.stock > 0 && producto?.stock <= 5 && !esOferta()" class="badge badge-low-stock">
+      ¡Últimas {{ producto.stock }}!
+    </span>
+  </div>
+
+  <!-- INFO PRODUCTO -->
+  <div class="product-info">
+    
+    <!-- Marca y categoría -->
+    <div class="meta-row">
+      <span class="marca" *ngIf="tieneMarca()">{{ producto?.marca }}</span>
+      <span class="categoria">{{ producto?.categoria || 'General' }}</span>
+    </div>
+
+    <h3 class="nombre">{{ producto?.nombre }}</h3>
+    
+    <!-- Rating visual -->
+    <div class="rating-row" *ngIf="ratingPromedio() > 0">
+      <span class="stars">{{ ratingStars() }}</span>
+      <span class="rating-value">{{ ratingPromedio().toFixed(1) }}</span>
+      <span class="rating-count" *ngIf="totalOpiniones() > 0">({{ totalOpiniones() }})</span>
+    </div>
+    
+    <p class="descripcion">
+      {{ (producto?.descripcionCorta || producto?.descripcion | slice:0:80) }}{{ ((producto?.descripcionCorta || producto?.descripcion)?.length > 80) ? '...' : '' }}
+    </p>
+
+    <!-- PRECIOS - La parte más importante -->
+    <div class="price-section">
+      <!-- Precio anterior tachado cuando hay oferta -->
+      <div class="price-row" *ngIf="esOferta()">
+        <span class="old-price">${{ precioOriginal() | number:'1.0-0' }}</span>
+        <span class="discount-badge">-{{ descuento() }}% OFF</span>
+      </div>
+      
+      <!-- Precio actual siempre visible -->
+      <div class="current-price-row">
+        <span class="price" [class.price-offer]="esOferta()">${{ precioFinal() | number:'1.0-0' }}</span>
+      </div>
+      
+      <!-- Ahorro calculado -->
+      <div class="savings-row" *ngIf="esOferta() && descuento() > 0">
+        <span class="savings-label">Ahorras ${{ (precioOriginal() - precioFinal()) | number:'1.0-0' }}</span>
+      </div>
+
+      <span class="envio-gratis">🚚 Llega gratis mañana</span>
+    </div>
+
+    <!-- Estado de stock -->
+    <div class="stock-indicator" [ngClass]="{
+      'stock-ok': producto?.stock > 5,
+      'stock-low': producto?.stock > 0 && producto?.stock <= 5,
+      'stock-out': !tieneStock()
+    }">
+      <span class="stock-dot"></span>
+      <span class="stock-text">{{ stockLabel() }}</span>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="actions">
+      <button 
+        class="btn-comprar" 
+        [disabled]="!tieneStock()" 
+        (click)="agregarAlCarrito($event)">
+        <span class="btn-icon">🛒</span> 
+        <span class="btn-text">{{ tieneStock() ? 'Agregar al Carrito' : 'Agotado' }}</span>
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,73 @@
+<section class="vendedor-pedidos animate-fade-in">
+
+  <div class="page-header">
+    <div>
+      <h1>Mis Pedidos</h1>
+      <p class="text-muted">Sigue el estado de tus transacciones</p>
+    </div>
+    <button class="btn btn-secondary" (click)="cargarPedidos()" [disabled]="loading">
+      <span *ngIf="loading" class="spinner-small mr-1"></span>
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <div class="search-row mb-6">
+    <input type="text" class="form-control" [(ngModel)]="filtro" placeholder="🔍 Buscar por ID, cliente o estado...">
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="card p-0" style="overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th *ngFor="let i of [1,2,3,4,5]"><div class="skeleton-box" style="height:16px; width:60px;"></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1,2,3,4,5]">
+          <td *ngFor="let j of [1,2,3,4,5]"><div class="skeleton-box" style="height:20px; width:80px;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && pedidos && pedidos.length === 0" class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No tienes pedidos</h3>
+    <p>Los pedidos de tus clientes aparecerán aquí.</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && errorType" class="error-state text-center p-8 mt-6">
+    <span class="error-icon block mb-4" style="font-size: 4rem; color: var(--danger);">⚠️</span>
+    <h3 class="mb-2" style="color: var(--danger);">Error al cargar pedidos</h3>
+    <p class="text-muted mb-4">{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="cargarPedidos()">🔄 Reintentar</button>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && pedidos && pedidos.length > 0" class="card p-0" style="overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pedidosFiltrados">
+          <td class="font-mono">#{{ p.id }}</td>
+          <td class="text-muted">{{ p.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="font-semibold">{{ p.cliente || 'Cliente' }}</td>
+          <td class="font-bold">{{ p.total | currency:'CLP':'symbol':'1.0-0' }}</td>
+          <td><span class="badge" [ngClass]="getBadgeClass(p.estado)">{{ p.estado }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>

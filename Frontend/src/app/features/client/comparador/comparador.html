@@ -1,0 +1,58 @@
+<div class="comparador-container">
+  <h1>Comparador de Productos</h1>
+  
+  <div *ngIf="loading" class="loading">Cargando comparación...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && productos.length === 0" class="empty">
+    No hay productos para comparar. Selecciona productos desde el catálogo.
+    <br><br>
+    <a routerLink="/catalogo" class="btn">Ir al catálogo</a>
+  </div>
+
+  <div *ngIf="!loading && productos.length > 0" class="comparador-table-wrapper">
+    <table class="comparador-table">
+      <thead>
+        <tr>
+          <th>Característica</th>
+          <th *ngFor="let p of productos">
+            <div class="producto-header">
+              <img [src]="p.imagenPrincipal || 'assets/placeholder.png'" [alt]="p.nombre" class="producto-img">
+              <h3 class="producto-nombre">{{ p.nombre }}</h3>
+              <p class="producto-precio">${{ p.precio | number }}</p>
+              <button class="btn btn-sm btn-primary">Ver Detalle</button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature-name">Descripción</td>
+          <td *ngFor="let p of productos">{{ p.descripcion }}</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Categoría</td>
+          <td *ngFor="let p of productos">{{ p.categoria }}</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Stock Disponible</td>
+          <td *ngFor="let p of productos">
+            <span [class.text-success]="p.stock > 0" [class.text-danger]="p.stock === 0">
+              {{ p.stock > 0 ? p.stock + ' unidades' : 'Agotado' }}
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td class="feature-name">SKU</td>
+          <td *ngFor="let p of productos">{{ p.sku }}</td>
+        </tr>
+        <tr *ngFor="let feat of caracteristicas">
+          <td class="feature-name">{{ feat | titlecase }}</td>
+          <td *ngFor="let p of productos">
+            {{ p.caracteristicas ? p.caracteristicas[feat] || '-' : '-' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

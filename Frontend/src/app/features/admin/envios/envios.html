@@ -1,0 +1,140 @@
+<section class="envios-container container animate-fade-in">
+  
+  <div class="header mb-6 flex justify-between items-end">
+    <div>
+      <h1 class="m-0 mb-2">Gestión de Envíos</h1>
+      <p class="text-muted m-0">Monitorea y gestiona la logística de pedidos</p>
+    </div>
+    <button class="btn btn-secondary" (click)="cargarEnvios()">
+      🔄 Recargar
+    </button>
+  </div>
+
+  <!-- SKELETON LOADER -->
+  <div *ngIf="loading" class="card p-0" style="overflow: hidden;">
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: var(--bg-secondary);">
+          <th class="p-4" *ngFor="let i of [1,2,3,4,5,6,7]"><div class="skeleton-box" style="height: 16px; width: 60px;"></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1,2,3,4,5]" style="border-top: 1px solid var(--border);">
+          <td class="p-4" *ngFor="let j of [1,2,3,4,5,6,7]"><div class="skeleton-box" style="height: 24px; width: 80px; border-radius: 4px;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && envios && envios.length === 0" class="empty-state text-center p-8 mt-6">
+    <span class="empty-icon block mb-4" style="font-size: 4rem;">🚚</span>
+    <h3 class="mb-2">No hay envíos registrados</h3>
+    <p class="text-muted">Los envíos se generarán automáticamente cuando se apruebe un pedido.</p>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="card p-0" style="overflow: hidden;" *ngIf="!loading && envios && envios.length > 0">
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border);">
+          <th class="text-left p-4 text-muted font-semibold text-sm">ID</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">PEDIDO</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">TRACKING</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">ESTADO</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">CHOFER</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">DIRECCIÓN</th>
+          <th class="text-right p-4 text-muted font-semibold text-sm">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of envios" style="border-bottom: 1px solid var(--border);" class="hover-bg">
+          <td class="p-4 font-mono font-semibold">#{{ e.id }}</td>
+          <td class="p-4 text-muted">#{{ e.pedidoId }}</td>
+          <td class="p-4">
+            <code class="text-xs" style="background: var(--bg-card); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">
+              {{ e.trackingCode || 'N/A' }}
+            </code>
+          </td>
+          <td class="p-4">
+            <!-- Badges -->
+            <span class="badge" *ngIf="e.estado === 'PENDIENTE'" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">PENDIENTE</span>
+            <span class="badge" *ngIf="e.estado === 'ASIGNADO'" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">ASIGNADO</span>
+            <span class="badge" *ngIf="e.estado === 'EN_CAMINO'" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9;">EN CAMINO</span>
+            <span class="badge" *ngIf="e.estado === 'ENTREGADO'" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">ENTREGADO</span>
+            <span class="badge" *ngIf="!['PENDIENTE', 'ASIGNADO', 'EN_CAMINO', 'ENTREGADO'].includes(e.estado)" style="background: var(--bg-secondary);">{{ e.estado }}</span>
+          </td>
+          <td class="p-4">
+            <div class="flex items-center gap-2">
+              <span *ngIf="e.choferId" class="text-sm font-semibold">{{ e.choferNombre || e.choferId }}</span>
+              <span *ngIf="!e.choferId" class="text-muted text-sm italic">Sin asignar</span>
+            </div>
+          </td>
+          <td class="p-4 text-sm max-w-xs truncate" [title]="e.direccionEnvio || e.direccion || 'N/A'">
+            {{ e.direccionEnvio || e.direccion || 'N/A' }}
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex justify-end gap-2">
+              <button *ngIf="puedeAsignarChofer(e)" class="btn btn-outline btn-sm" (click)="abrirModalAsignar(e)" title="Asignar Chofer">
+                👤 Asignar
+              </button>
+
+              <button class="btn btn-outline btn-sm" (click)="verTracking(e.trackingCode)" [disabled]="!e.trackingCode" title="Ver Tracking">
+                📍 Track
+              </button>
+
+              <button *ngIf="e.estado === 'EN_CAMINO'" class="btn btn-outline btn-sm" style="color: var(--success); border-color: var(--success);" 
+                      (click)="actualizarEstado(e, 'ENTREGADO')" [disabled]="accionId === e.id" title="Marcar como Entregado">
+                <span *ngIf="accionId === e.id" class="spinner-small mr-1"></span>
+                ✅ Entregar
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- MODAL ASIGNAR CHOFER -->
+<div *ngIf="mostrarModalAsignar" class="modal-overlay" (click)="cerrarModalAsignar()">
+  <div class="modal-content animate-fade-in" style="max-width: 500px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Asignar Chofer</h2>
+      <button class="btn-close" (click)="cerrarModalAsignar()" [disabled]="guardando">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border);">
+        <p class="m-0 text-sm">
+          <strong>Envío #{{ envioSeleccionado?.id }}</strong> (Pedido: #{{ envioSeleccionado?.pedidoId }})<br>
+          <span class="text-muted">Dirección: {{ envioSeleccionado?.direccionEnvio || 'No especificada' }}</span>
+        </p>
+      </div>
+
+      <div class="form-group mb-0">
+        <label for="chofer-select">Seleccionar Chofer:</label>
+        <select id="chofer-select" [(ngModel)]="choferSeleccionado" class="form-control" [disabled]="guardando">
+          <option value="">-- Selecciona un chofer --</option>
+          <option *ngFor="let chofer of choferes" [value]="chofer.id">
+            {{ chofer.nombre || chofer.name || chofer.email }}
+          </option>
+        </select>
+      </div>
+
+      <div *ngIf="choferes && choferes.length === 0" class="mt-4" style="color: var(--warning); padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
+        ⚠️ No hay choferes disponibles en el sistema.
+      </div>
+    </div>
+
+    <div class="modal-footer flex gap-2 justify-end mt-4 pt-4" style="border-top: 1px solid var(--border);">
+      <button (click)="cerrarModalAsignar()" class="btn btn-secondary" [disabled]="guardando">
+        Cancelar
+      </button>
+      <button (click)="confirmarAsignacion()" class="btn btn-primary" [disabled]="!choferSeleccionado || guardando">
+        <span *ngIf="guardando" class="spinner-small mr-2"></span>
+        {{ guardando ? 'Asignando...' : '✅ Asignar Chofer' }}
+      </button>
+    </div>
+  </div>
+</div>

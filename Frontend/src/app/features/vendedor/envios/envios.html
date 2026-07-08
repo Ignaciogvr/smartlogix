@@ -1,0 +1,82 @@
+<section class="vendedor-envios animate-fade-in">
+
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Envíos</h1>
+      <p class="text-muted">Sigue y actualiza el estado de tus envíos</p>
+    </div>
+    <button class="btn btn-secondary" (click)="cargarEnvios()" [disabled]="loading">
+      <span *ngIf="loading" class="spinner-small mr-1"></span>
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="card p-0" style="overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th *ngFor="let i of [1,2,3,4,5,6]"><div class="skeleton-box" style="height:16px; width:60px;"></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1,2,3,4,5]">
+          <td *ngFor="let j of [1,2,3,4,5,6]"><div class="skeleton-box" style="height:20px; width:80px;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && envios && envios.length === 0" class="empty-state">
+    <div class="empty-icon">🚚</div>
+    <h3>No tienes envíos registrados</h3>
+    <p>Los envíos se generarán automáticamente cuando se aprueben pedidos.</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && envios && envios.length > 0" class="card p-0" style="overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID Envío</th>
+          <th>Pedido</th>
+          <th>Tracking</th>
+          <th>Destino</th>
+          <th>Estado</th>
+          <th>Cambiar Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let envio of envios">
+          <td class="font-mono">#{{ envio.envioId || envio.id }}</td>
+          <td class="font-semibold">#{{ envio.pedidoId }}</td>
+          <td>
+            <code class="tracking-code">{{ envio.trackingCode || 'N/A' }}</code>
+          </td>
+          <td class="text-muted" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ envio.direccionDestino || 'Sin dirección' }}
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getBadgeClass(envio.estado)">{{ envio.estado }}</span>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <select class="estado-select" [(ngModel)]="envio.estadoSeleccionado" [disabled]="actualizandoId === (envio.envioId || envio.id)">
+                <option value="">Seleccionar...</option>
+                <option *ngFor="let est of estados" [value]="est.value">{{ est.label }}</option>
+              </select>
+              <button class="btn btn-primary btn-sm"
+                      [disabled]="!envio.estadoSeleccionado || actualizandoId === (envio.envioId || envio.id)"
+                      (click)="cambiarEstado(envio.envioId || envio.id, envio.estadoSeleccionado)">
+                <span *ngIf="actualizandoId === (envio.envioId || envio.id)" class="spinner-small"></span>
+                <span *ngIf="actualizandoId !== (envio.envioId || envio.id)">✓</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>

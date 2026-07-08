@@ -1,0 +1,30 @@
+<div class="chofer-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>🚚 SmartLogix Chofer</h2>
+      <p class="user-name">{{ nombreUsuario }}</p>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of menuItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item"
+      >
+        <span class="icon">{{ item.icon }}</span>
+        <span class="label">{{ item.label }}</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <button (click)="logout()" class="btn-logout">
+        🚪 Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

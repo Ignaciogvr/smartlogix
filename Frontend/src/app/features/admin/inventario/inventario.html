@@ -1,0 +1,59 @@
+<div class="inventario-container animate-fade-in">
+
+  <div class="flex justify-between items-center mb-4">
+    <h2>Gestión de Inventario</h2>
+    <button class="btn btn-primary" (click)="cargarInventario()" [disabled]="loading">
+      <span class="flex items-center gap-2">
+        <span *ngIf="loading" class="spinner-small"></span>
+        <span *ngIf="!loading">🔄</span>
+        Actualizar
+      </span>
+    </button>
+  </div>
+
+  <div *ngIf="loading && productos.length === 0" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando productos...</p>
+  </div>
+
+  <div *ngIf="!loading && productos.length === 0" class="empty-state">
+    <span class="empty-icon">📦</span>
+    <h3>Inventario vacío</h3>
+  </div>
+
+  <div class="card p-0" *ngIf="productos.length > 0">
+    <table class="table w-full">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Stock</th>
+          <th>Precio</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of productos">
+          <td class="text-muted">#{{ p.id }}</td>
+          <td class="font-bold">{{ p.nombre }}</td>
+          <td>
+            <span class="badge" style="background: rgba(255,255,255,0.1)">{{ p.categoria }}</span>
+          </td>
+          <td>
+            <span [class.text-danger]="p.stock < 10" [class.text-success]="p.stock >= 10">
+              {{ p.stock }} uds
+            </span>
+          </td>
+          <td>{{ p.precio | currency:'CLP' }}</td>
+          <td>
+            <span class="badge" [ngClass]="p.activo ? 'badge-success' : 'badge-danger'">
+              {{ p.activo ? 'ACTIVO' : 'INACTIVO' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
