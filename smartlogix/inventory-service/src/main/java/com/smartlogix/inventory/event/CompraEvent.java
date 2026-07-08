@@ -1,12 +1,10 @@
 package com.smartlogix.inventory.event;
 
-// 📦 Evento de Kafka que representa una compra
+// 📦 Evento de Kafka que representa una compra 
 public class CompraEvent {
 
     private Long productoId;
     private Integer cantidad;
-
-    // 🔥 FIX: usar auth0Id (String) y eliminar token
     private String usuarioId;
 
     public CompraEvent() {}

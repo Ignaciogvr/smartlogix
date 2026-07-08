@@ -1,132 +1,82 @@
 package com.smartlogix.inventory.service;
 
-import com.smartlogix.inventory.model.Producto;
-import com.smartlogix.inventory.repository.ProductoRepository;
-import org.springframework.stereotype.Service;
+import com.smartlogix.inventory.dto.ProductoCreateRequest;
+import com.smartlogix.inventory.dto.ProductoResponse;
+import com.smartlogix.inventory.dto.ProductoUpdateRequest;
 
 import java.util.List;
 
-@Service
-public class ProductoService {
+public interface ProductoService {
 
-    private final ProductoRepository repository;
+    List<ProductoResponse> listar();
+    List<ProductoResponse> activos();
+    List<ProductoResponse> porCategoria(String categoria);
+    List<ProductoResponse> bajoStock();
 
-    public ProductoService(ProductoRepository repository) {
-        this.repository = repository;
-    }
+    // 🔥 NUEVO
+    List<ProductoResponse> ofertas();
+    List<ProductoResponse> nuevos();
+    List<ProductoResponse> buscarPorTexto(String q);
+    List<ProductoResponse> filtrar(Double precioMin, Double precioMax, String marca, Double ratingMin);
 
-    // 📦 LISTAR TODO
-    public List<Producto> listar() {
-        return repository.findAll();
-    }
+    ProductoResponse crear(ProductoCreateRequest request);
+    ProductoResponse obtener(Long id);
+    ProductoResponse actualizar(Long id, ProductoUpdateRequest request);
 
-    // 📦 POR CATEGORÍA
-    public List<Producto> porCategoria(String categoria) {
-        return repository.findByCategoria(categoria);
-    }
+    void eliminar(Long id);
+    ProductoResponse reactivar(Long id);
 
-    // 📦 PRODUCTOS ACTIVOS
-    public List<Producto> activos() {
-        return repository.findByEstado("ACTIVO");
-    }
+    ProductoResponse validarProducto(Long id, Integer cantidad);
+    void descontarStock(Long id, Integer cantidad, String usuarioId);
+    void reponerStock(Long id, Integer cantidad);
 
-    // 📦 BAJO STOCK
-    public List<Producto> bajoStock() {
-        return repository.findByStockLessThan(5);
-    }
+    void agregarRating(Long id, Double rating);
 
-    // ➕ CREAR
-    public Producto crear(Producto producto) {
+    List<ProductoResponse> destacados();
 
-        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
-            throw new RuntimeException("Nombre obligatorio");
-        }
+    List<com.smartlogix.inventory.dto.ComentarioResponse> obtenerComentarios(Long id);
+    com.smartlogix.inventory.dto.ComentarioResponse agregarComentario(Long id, com.smartlogix.inventory.dto.ComentarioCreateRequest request, String usuarioId, String nombreCliente);
+    com.smartlogix.inventory.dto.ComentarioResponse actualizarComentario(Long comentarioId, com.smartlogix.inventory.dto.ComentarioUpdateRequest request, String usuarioId);
+    void eliminarComentario(Long comentarioId, String usuarioId);
 
-        if (producto.getPrecio() == null || producto.getPrecio() <= 0) {
-            throw new RuntimeException("Precio inválido");
-        }
+    List<ProductoResponse> productosRelacionados(Long id);
+    List<ProductoResponse> productosRelacionadosPorMarca(Long id);
 
-        if (producto.getStock() == null || producto.getStock() < 0) {
-            throw new RuntimeException("Stock inválido");
-        }
+    List<ProductoResponse> menosVendidos();
 
-        producto.setEstado("ACTIVO");
-        producto.setCantidadVendidos(0);
-        producto.setRatingPromedio(0.0);
+    void registrarVista(Long id, String usuarioId);
+    List<ProductoResponse> vistosRecientemente(String usuarioId);
+    List<ProductoResponse> recomendados(String usuarioId);
 
-        return repository.save(producto);
-    }
 
-    // 🔍 OBTENER
-    public Producto obtener(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-    }
+    Integer stock(Long id);
 
-    // ✏️ ACTUALIZAR
-    public Producto actualizar(Long id, Producto datos) {
+    /** Moderación de reviews por ADMIN: desactiva cualquier comentario */
+    com.smartlogix.inventory.dto.ComentarioModeracionResponseDTO moderarComentario(Long comentarioId, com.smartlogix.inventory.dto.ComentarioModeracionRequestDTO request);
 
-        Producto producto = obtener(id);
+    List<ProductoResponse> listarPorVendedor(String vendedorId);
 
-        if (datos.getNombre() != null) producto.setNombre(datos.getNombre());
-        if (datos.getDescripcion() != null) producto.setDescripcion(datos.getDescripcion());
-        if (datos.getPrecio() != null) producto.setPrecio(datos.getPrecio());
-        if (datos.getStock() != null) producto.setStock(datos.getStock());
-        if (datos.getCategoria() != null) producto.setCategoria(datos.getCategoria());
-        if (datos.getImagenUrl() != null) producto.setImagenUrl(datos.getImagenUrl());
+    // ===================== NUEVAS: SISTEMA DE COMENTARIOS AVANZADO =====================
 
-        return repository.save(producto);
-    }
+    /** 2.7 - Responder comentario (ADMIN o VENDEDOR) */
+    com.smartlogix.inventory.dto.ComentarioResponse responderComentario(Long comentarioId, String respuesta, String rol);
 
-    // 🗑️ ELIMINAR LOGICO
-    public void eliminar(Long id) {
-        Producto producto = obtener(id);
-        producto.setEstado("INACTIVO");
-        repository.save(producto);
-    }
+    /** 2.8 - Reportar comentario inapropiado */
+    com.smartlogix.inventory.dto.ComentarioReporteResponse reportarComentario(Long comentarioId, String usuarioId, String motivo);
 
-    // 🔄 REACTIVAR
-    public Producto reactivar(Long id) {
-        Producto producto = obtener(id);
-        producto.setEstado("ACTIVO");
-        return repository.save(producto);
-    }
+    /** 2.8 - Listar reportes pendientes (solo ADMIN) */
+    List<com.smartlogix.inventory.dto.ComentarioReporteResponse> reportesPendientes();
 
-    // 📉 VALIDAR STOCK
-    public Producto validarProducto(Long id, Integer cantidad) {
+    /** 2.14 - Distribución de ratings por estrella con porcentaje */
+    List<com.smartlogix.inventory.dto.DistribucionRatingDTO> distribucionRatings(Long productoId);
 
-        Producto producto = obtener(id);
+    /** 2.15 - Marcar comentario como útil (suma 1 voto) */
+    com.smartlogix.inventory.dto.ComentarioResponse marcarUtil(Long comentarioId);
 
-        if (!"ACTIVO".equals(producto.getEstado())) {
-            throw new RuntimeException("Producto inactivo");
-        }
+    /** 2.15 - Destacar o des-destacar comentario (ADMIN) */
+    com.smartlogix.inventory.dto.ComentarioResponse marcarDestacado(Long comentarioId, Boolean destacado);
 
-        if (cantidad <= 0) {
-            throw new RuntimeException("Cantidad inválida");
-        }
-
-        if (producto.getStock() < cantidad) {
-            throw new RuntimeException("Stock insuficiente");
-        }
-
-        return producto;
-    }
-
-    // 💥 DESCONTAR STOCK (KAFKA)
-    public void descontarStock(Long productoId, Integer cantidad, String usuarioId) {
-
-        Producto producto = validarProducto(productoId, cantidad);
-
-        producto.setStock(producto.getStock() - cantidad);
-        producto.setCantidadVendidos(producto.getCantidadVendidos() + cantidad);
-
-        repository.save(producto);
-    }
-
-    // ⭐ RATING
-    public void agregarRating(Long id, Double rating) {
-        Producto producto = obtener(id);
-        producto.agregarRating(rating);
-        repository.save(producto);
-    }
+    /** 2.15 - Obtener comentarios destacados de un producto */
+    List<com.smartlogix.inventory.dto.ComentarioResponse> comentariosDestacados(Long productoId);
 }
+

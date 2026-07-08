@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <!-- Configuración de timeouts -->
+  <servers>
+    <server>
+      <id>google-maven-central</id>
+      <configuration>
+        <timeout>120000</timeout>
+      </configuration>
+    </server>
+    <server>
+      <id>aliyun-maven</id>
+      <configuration>
+        <timeout>120000</timeout>
+      </configuration>
+    </server>
+    <server>
+      <id>central</id>
+      <configuration>
+        <timeout>120000</timeout>
+      </configuration>
+    </server>
+  </servers>
+
+  <mirrors>
+    <!-- Primary: Google Maven Central (rápido globalmente) -->
+    <mirror>
+      <id>google-maven-central</id>
+      <name>GCS Maven Central mirror</name>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+    <!-- Fallback: Aliyun mirror (alternativa rápida) -->
+    <mirror>
+      <id>aliyun-maven</id>
+      <name>Aliyun Maven Repository</name>
+      <url>https://maven.aliyun.com/repository/central</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+
+  <profiles>
+    <profile>
+      <id>smartlogix-build</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>google-maven-central</id>
+          <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>aliyun-maven</id>
+          <url>https://maven.aliyun.com/repository/central</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>google-maven-central</id>
+          <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+          <id>aliyun-maven</id>
+          <url>https://maven.aliyun.com/repository/central</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>smartlogix-build</activeProfile>
+  </activeProfiles>
+
+</settings>

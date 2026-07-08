@@ -2,6 +2,7 @@ package com.smartlogix.pedidos.security.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,22 +20,23 @@ import com.smartlogix.pedidos.security.jwt.JwtAuthConverter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String ISSUER =
-            "https://dev-nomnv0fhn3zpzt4t.us.auth0.com/";
-    private static final String AUDIENCE =
-            "https://smartlogix-api";
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private String issuer;
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.audience}")
+    private String audience;
 
     @Bean
     public JwtDecoder jwtDecoder() {
 
         NimbusJwtDecoder jwtDecoder =
-                (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(ISSUER);
+                (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuer);
 
         OAuth2TokenValidator<Jwt> withIssuer =
-                JwtValidators.createDefaultWithIssuer(ISSUER);
+                JwtValidators.createDefaultWithIssuer(issuer);
 
         OAuth2TokenValidator<Jwt> audienceValidator =
-                new AudienceValidator(AUDIENCE);
+                new AudienceValidator(audience);
 
         OAuth2TokenValidator<Jwt> validator =
                 new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
@@ -51,18 +53,22 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .cors(cors -> cors.configurationSource(request -> {
-                var config = new CorsConfiguration();
+                CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of("http://localhost:4200"));
-                config.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
+                config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 return config;
             }))
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/pedidos").hasAnyRole("CLIENTE","ADMIN")
-                .requestMatchers(HttpMethod.GET, "/pedidos/usuario/**").hasAnyRole("CLIENTE","ADMIN")
-                .requestMatchers(HttpMethod.GET, "/pedidos").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/pedidos/**").hasRole("ADMIN")
+
+                // ACTUATOR
+                .requestMatchers("/actuator/**").permitAll()
+
+                // ADMIN (requiere rol ADMIN en el token)
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
+
+                // El resto: cualquier JWT válido puede acceder (el BFF controla los roles)
                 .anyRequest().authenticated()
             )
 

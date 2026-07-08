@@ -1,9 +1,14 @@
 package com.smartlogix.usuarios.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", indexes = {
+    @Index(name = "idx_usuarios_auth0_id", columnList = "auth0_id"),
+    @Index(name = "idx_usuarios_email", columnList = "email"),
+    @Index(name = "idx_usuarios_estado", columnList = "estado")
+})
 public class Usuario {
 
     @Id
@@ -15,13 +20,18 @@ public class Usuario {
     @Column(unique = true)
     private String email;
 
-    private String password;
-
-    // 🔥 NUEVO
-    @Column(unique = true)
+    @Column(name = "auth0_id", unique = true)
     private String auth0Id;
 
     private String estado = "ACTIVO";
+
+    @Enumerated(EnumType.STRING)
+    private Rol rol = Rol.CLIENTE;
+
+    private LocalDateTime fechaSuspension;
+
+    @Column(name = "telefono", length = 20)
+    private String telefono;
 
     public Usuario() {}
 
@@ -33,12 +43,18 @@ public class Usuario {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
     public String getAuth0Id() { return auth0Id; }
     public void setAuth0Id(String auth0Id) { this.auth0Id = auth0Id; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
+
+    public LocalDateTime getFechaSuspension() { return fechaSuspension; }
+    public void setFechaSuspension(LocalDateTime fechaSuspension) { this.fechaSuspension = fechaSuspension; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }

@@ -1,6 +1,14 @@
 package com.smartlogix.pedidos.model;
 
 public enum EstadoPedido {
-    ABIERTO,
-    CERRADO
+
+    PENDIENTE,
+    PAGADO,
+    CONFIRMADO,
+    EN_PREPARACION,
+    ENVIADO,
+    ENTREGADO,
+    CANCELADO,
+    EXPIRADO
+
 }

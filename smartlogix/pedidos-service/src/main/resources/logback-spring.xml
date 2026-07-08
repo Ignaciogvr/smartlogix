@@ -15,8 +15,10 @@
                 }
             </customFields>
 
-            <!-- 🔥 incluye traceId automáticamente -->
-            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <!-- 🔥 incluye campos MDC automáticamente -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>usuarioId</includeMdcKeyName>
+            <includeMdcKeyName>pedidoId</includeMdcKeyName>
 
         </encoder>
 

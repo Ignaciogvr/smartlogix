@@ -1,15 +1,15 @@
-package com.smartlogix.inventory.exception; // ⚠️ cambia inventory por pedidos o usuarios según microservicio
+package com.smartlogix.inventory.exception;
 
-public class ApiResponse {
+public class ApiResponse<T> {
 
     private int status;
     private String message;
-    private Object data;
+    private T data;
 
     public ApiResponse() {
     }
 
-    public ApiResponse(int status, String message, Object data) {
+    public ApiResponse(int status, String message, T data) {
         this.status = status;
         this.message = message;
         this.data = data;
@@ -31,11 +31,11 @@ public class ApiResponse {
         this.message = message;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 }

@@ -1,4 +1,10 @@
+# Maven
 target/
+*.class
+*.jar
+*.war
+
+# Maven backups
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -6,12 +12,49 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
-# https://maven.apache.org/tools/wrapper/#Usage_with_or_without_Binary_JAR
-.mvn/wrapper/maven-wrapper.jar
 
-# Eclipse m2e generated files
-# Eclipse Core
+# Maven wrapper logs
+.mvn/timing.properties
+
+# Eclipse
 .project
-# JDT-specific (Eclipse Java Development Tools)
 .classpath
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# Maven local cache
+m2/
+
+# VS Code
+.vscode/
+
+# Scripts y archivos externos al proyecto (raíz DEMO)
+scripts/
+puppeteer_test.js
+endpoints_scan.csv
+CODIGO_COMPLETO_FIX_CHECKOUT.java
+
+# PDF de evaluación (no es código fuente)
+EFT126_DSY1106_ESTUDIANTE.pdf
+
+# Logs de herramientas IA
+.codex-*
+*.log
+
+# Resultados temporales de testing
+*-results.csv
+test-output.txt
+resultados-validacion.json
+validacion-backend-resultados.json
