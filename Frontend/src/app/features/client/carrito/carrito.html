@@ -1,0 +1,102 @@
+<section class="carrito-page container animate-fade-in">
+
+  <div class="page-header">
+    <div>
+      <h1>🛒 Mi Carrito</h1>
+      <p class="text-muted">{{ productos.length }} {{ productos.length === 1 ? 'producto' : 'productos' }} en tu carrito</p>
+    </div>
+  </div>
+
+  <!-- Empty Cart -->
+  <div *ngIf="productos.length === 0" class="empty-state">
+    <div style="font-size: 5rem; margin-bottom: 1rem;">🛒</div>
+    <h3>Tu carrito está vacío</h3>
+    <p>Añade productos del catálogo para comenzar tu compra.</p>
+    <a routerLink="/catalogo" class="btn btn-primary mt-4">Ir al Catálogo</a>
+  </div>
+
+  <!-- Cart Content -->
+  <div *ngIf="productos.length > 0" class="carrito-layout">
+
+    <!-- Items Column -->
+    <div class="carrito-items">
+      <div class="card p-0" style="overflow:hidden;">
+
+        <div *ngFor="let item of productos; let last = last" class="item-row" [class.last-item]="last">
+
+          <!-- Product Image -->
+          <div class="item-img">
+            <img
+              *ngIf="item.imagenUrl || item.imagenes?.[0] || item.imagen"
+              [src]="item.imagenUrl || item.imagenes?.[0] || item.imagen"
+              [alt]="item.nombre"
+              style="width:100%; height:100%; object-fit:cover;">
+            <span *ngIf="!item.imagenUrl && !item.imagenes?.[0] && !item.imagen" style="font-size:2rem;">📦</span>
+          </div>
+
+          <!-- Info -->
+          <div class="item-info">
+            <h3 class="item-nombre">{{ item.nombre }}</h3>
+            <p class="item-desc text-muted">{{ item.descripcion }}</p>
+            <div class="item-precio">
+              {{ item.precio | currencyClp }}
+              <span class="text-muted text-sm ml-1">c/u</span>
+            </div>
+          </div>
+
+          <!-- Quantity Controls -->
+          <div class="item-controls">
+            <div class="qty-control">
+              <button class="qty-btn" (click)="disminuirCantidad(item.id)" [disabled]="item.cantidad <= 1">−</button>
+              <span class="qty-value">{{ item.cantidad }}</span>
+              <button class="qty-btn" (click)="aumentarCantidad(item.id)">+</button>
+            </div>
+            <div class="item-subtotal">{{ item.precio * item.cantidad | currencyClp }}</div>
+            <button class="delete-btn" (click)="eliminarProducto(item.id)" title="Eliminar">
+              🗑️
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Clear Cart -->
+      <button class="btn btn-secondary mt-4" (click)="vaciarCarrito()">🗑️ Vaciar Carrito</button>
+    </div>
+
+    <!-- Summary Sidebar -->
+    <div class="carrito-resumen">
+      <div class="card resumen-card">
+        <h3 class="resumen-title">Resumen de Compra</h3>
+
+        <div class="resumen-rows">
+          <div class="resumen-row" *ngFor="let item of productos">
+            <span class="text-muted text-sm">{{ item.nombre }} ×{{ item.cantidad }}</span>
+            <span class="text-sm">{{ item.precio * item.cantidad | currencyClp }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-divider"></div>
+
+        <div class="resumen-subtotal">
+          <span>Subtotal</span>
+          <strong>{{ subtotal | currencyClp }}</strong>
+        </div>
+
+        <div class="resumen-total">
+          <span>Total</span>
+          <strong class="total-amount">{{ total | currencyClp }}</strong>
+        </div>
+
+        <button class="btn btn-primary w-full mt-4" (click)="irCheckout()">
+          💳 Continuar Compra
+        </button>
+
+        <a routerLink="/catalogo" class="btn btn-secondary w-full mt-2">Seguir comprando</a>
+      </div>
+    </div>
+
+  </div>
+
+</section>

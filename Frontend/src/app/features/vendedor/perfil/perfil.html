@@ -1,0 +1,14 @@
+<div class="card max-w-30rem mx-auto mt-6">
+  <p-card header="Perfil del Vendedor" subheader="Detalles de tu cuenta">
+    <div class="flex flex-column gap-3">
+      <div>
+        <strong>ID Auth0:</strong> <br>
+        <span class="text-secondary">{{ user?.sub }}</span>
+      </div>
+      <div>
+        <strong>Email:</strong> <br>
+        <span class="text-secondary">{{ user?.email || 'N/A' }}</span>
+      </div>
+    </div>
+  </p-card>
+</div>

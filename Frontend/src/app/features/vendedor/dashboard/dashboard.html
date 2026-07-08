@@ -1,0 +1,98 @@
+<section class="vendedor-dashboard animate-fade-in">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Dashboard <span class="highlight">Vendedor</span></h1>
+      <p class="text-muted">Resumen de tu actividad comercial</p>
+    </div>
+    <a routerLink="/vendedor/productos" class="btn btn-primary">
+      ➕ Nuevo Producto
+    </a>
+  </div>
+
+  <!-- Skeleton Loader -->
+  <div *ngIf="loading" class="metrics-grid mb-6">
+    <div *ngFor="let i of [1,2,3,4]" class="metric-card-skeleton">
+      <div class="skeleton-box" style="height: 16px; width: 60%; margin-bottom: 12px;"></div>
+      <div class="skeleton-box" style="height: 40px; width: 40%;"></div>
+    </div>
+  </div>
+
+  <!-- Metrics Grid -->
+  <div *ngIf="!loading && metrics" class="metrics-grid mb-6">
+
+    <div class="metric-card green-gradient stagger-1">
+      <div class="metric-icon">💰</div>
+      <div class="metric-content">
+        <span class="metric-label">Ventas Totales</span>
+        <h2 class="metric-value">{{ metrics.totalVentas | currency:'CLP':'symbol':'1.0-0' }}</h2>
+      </div>
+    </div>
+
+    <div class="metric-card blue-gradient stagger-2">
+      <div class="metric-icon">🛒</div>
+      <div class="metric-content">
+        <span class="metric-label">Pedidos Activos</span>
+        <h2 class="metric-value">{{ metrics.pedidosActivos }}</h2>
+      </div>
+    </div>
+
+    <div class="metric-card purple-gradient stagger-3">
+      <div class="metric-icon">📦</div>
+      <div class="metric-content">
+        <span class="metric-label">Productos Activos</span>
+        <h2 class="metric-value">{{ metrics.productosActivos }}</h2>
+      </div>
+    </div>
+
+    <div class="metric-card orange-gradient stagger-4">
+      <div class="metric-icon">⚠️</div>
+      <div class="metric-content">
+        <span class="metric-label">Alertas Stock</span>
+        <h2 class="metric-value" style="color: #fff;">{{ metrics.alertasStock }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Últimos Pedidos -->
+  <div *ngIf="!loading && metrics" class="card p-0" style="overflow: hidden;">
+    <div class="card-header">
+      <h3 class="m-0">Últimos Pedidos</h3>
+    </div>
+    <div *ngIf="!metrics.ultimosPedidos || metrics.ultimosPedidos.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No hay pedidos recientes</h3>
+      <p>Los pedidos aparecerán aquí cuando lleguen.</p>
+    </div>
+    <table *ngIf="metrics.ultimosPedidos && metrics.ultimosPedidos.length > 0" class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pedido of metrics.ultimosPedidos">
+          <td class="font-mono">#{{ pedido.id }}</td>
+          <td class="text-muted">{{ pedido.fecha | date:'dd/MM/yyyy' }}</td>
+          <td class="font-semibold">{{ pedido.cliente }}</td>
+          <td class="font-bold">{{ pedido.total | currency:'CLP':'symbol':'1.0-0' }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'badge-success': pedido.estado === 'ENTREGADO',
+              'badge-info': pedido.estado === 'ENVIADO',
+              'badge-warning': pedido.estado === 'PENDIENTE',
+              'badge-danger': pedido.estado === 'CANCELADO'
+            }">{{ pedido.estado }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>

@@ -1,0 +1,112 @@
+<section class="vendedor-productos animate-fade-in">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Mis Productos</h1>
+      <p class="text-muted">Gestiona tu catálogo de productos</p>
+    </div>
+    <button class="btn btn-primary" (click)="openNew()">➕ Nuevo Producto</button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-row mb-6">
+    <input type="text" class="form-control" [(ngModel)]="filtro" placeholder="🔍 Buscar por nombre o categoría...">
+    <button class="btn btn-secondary" (click)="cargarProductos()" [disabled]="loading">🔄 Recargar</button>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="productos-grid">
+    <div *ngFor="let i of [1,2,3,4,5,6]" class="producto-card-skeleton">
+      <div class="skeleton-box" style="height: 140px; border-radius: 8px;"></div>
+      <div class="skel-body">
+        <div class="skeleton-box mb-2" style="height: 20px; width: 70%;"></div>
+        <div class="skeleton-box mb-3" style="height: 14px; width: 100%;"></div>
+        <div class="skeleton-box" style="height: 32px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading && productos && productos.length === 0" class="empty-state">
+    <div class="empty-icon">📦</div>
+    <h3>No tienes productos</h3>
+    <p>Crea tu primer producto para comenzar a vender.</p>
+    <button class="btn btn-primary" (click)="openNew()">➕ Crear Producto</button>
+  </div>
+
+  <!-- Grid -->
+  <div *ngIf="!loading && productos && productos.length > 0" class="productos-grid">
+    <div *ngFor="let p of productosFiltrados" class="producto-card">
+
+      <div class="producto-badge-row">
+        <span class="badge" [ngClass]="getSeverityClass(p.estadoProducto || p.estado)">
+          {{ p.estadoProducto || p.estado }}
+        </span>
+      </div>
+
+      <div class="producto-img">
+        <img *ngIf="p.imagenPrincipal || (p.imagenes && p.imagenes.length > 0)"
+             [src]="p.imagenPrincipal || p.imagenes[0]?.url"
+             [alt]="p.nombre"
+             style="width:100%; height:100%; object-fit:cover;">
+        <span *ngIf="!p.imagenPrincipal && (!p.imagenes || !p.imagenes.length)" style="font-size:2.5rem;">📦</span>
+      </div>
+
+      <div class="producto-body">
+        <h3 class="producto-nombre">{{ p.nombre }}</h3>
+        <p class="producto-cat">{{ p.categoria || 'Sin categoría' }}</p>
+        <div class="producto-footer">
+          <span class="producto-precio">${{ p.precio | number:'1.0-0' }}</span>
+          <span class="producto-stock" [class.stock-low]="p.stock < 10">Stock: {{ p.stock }}</span>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-secondary btn-sm flex-1" (click)="editProducto(p)">✏️ Editar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- MODAL CREAR/EDITAR -->
+<div *ngIf="productoDialog" class="modal-overlay" (click)="hideDialog()">
+  <div class="modal-content animate-fade-in" style="max-width: 520px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ producto.id ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+      <button class="btn-close" (click)="hideDialog()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" class="form-control" [(ngModel)]="producto.nombre" [class.input-error]="submitted && !producto.nombre" placeholder="Nombre del producto">
+        <small class="text-danger" *ngIf="submitted && !producto.nombre">El nombre es requerido</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-control" [(ngModel)]="producto.descripcion" rows="3" placeholder="Descripción del producto"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <input type="text" class="form-control" [(ngModel)]="producto.categoria" placeholder="Ej: Electrónica">
+      </div>
+      <div class="flex gap-4">
+        <div class="form-group flex-1">
+          <label class="form-label">Precio *</label>
+          <input type="number" class="form-control" [(ngModel)]="producto.precio" min="0" [class.input-error]="submitted && !producto.precio">
+        </div>
+        <div class="form-group flex-1">
+          <label class="form-label">Stock *</label>
+          <input type="number" class="form-control" [(ngModel)]="producto.stock" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="hideDialog()" [disabled]="guardando">Cancelar</button>
+      <button class="btn btn-primary" (click)="saveProducto()" [disabled]="guardando">
+        <span *ngIf="guardando" class="spinner-small mr-2"></span>
+        {{ guardando ? 'Guardando...' : '💾 Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="search-container">
+
+  <div class="search-box">
+
+    <input
+      type="text"
+      [(ngModel)]="termino"
+      [placeholder]="placeholder"
+      (keyup.enter)="onBuscar()"
+      (input)="onInput()"
+    />
+
+    <button
+      class="btn-search"
+      (click)="onBuscar()"
+    >
+      Buscar
+    </button>
+
+    <button
+      class="btn-clear"
+      (click)="limpiar()"
+      *ngIf="termino"
+    >
+      ✕
+    </button>
+
+  </div>
+
+</div>

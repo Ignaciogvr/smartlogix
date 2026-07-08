@@ -1,0 +1,28 @@
+.usuarios-container {
+  padding: 20px;
+}
+
+h2 {
+  margin-bottom: 15px;
+}
+
+button {
+  margin: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+th {
+  background: #f2f2f2;
+}

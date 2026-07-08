@@ -1,0 +1,295 @@
+<!-- TOAST NOTIFICATION -->
+<div class="toast" [class.toast-visible]="toastVisible">
+  {{ toastMessage }}
+</div>
+
+<div class="page-wrapper" *ngIf="!loading && !error">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a routerLink="/home">Inicio</a>
+    <span class="sep">›</span>
+    <a routerLink="/catalogo">Catálogo</a>
+    <span class="sep">›</span>
+    <span>{{ producto?.nombre }}</span>
+  </nav>
+
+  <!-- BLOQUE PRINCIPAL: GALERÍA + INFO -->
+  <div class="product-main">
+
+    <!-- GALERÍA DE IMÁGENES -->
+    <div class="gallery-section">
+      
+      <!-- Imagen principal -->
+      <div class="main-image-wrap">
+        <img 
+          [src]="imagenSeleccionada || '/assets/images/product-placeholder.webp'" 
+          [alt]="producto?.nombre"
+          (error)="onImagenError($event)"
+          class="main-image">
+        
+        <span *ngIf="esOferta()" class="gallery-badge">-{{ descuento() }}% OFF</span>
+      </div>
+
+      <!-- Miniaturas -->
+      <div class="thumbnails" *ngIf="imagenesProducto().length > 1">
+        <div 
+          *ngFor="let img of imagenesProducto()" 
+          class="thumb-wrap"
+          [class.active]="imagenSeleccionada === img"
+          (click)="seleccionarImagen(img)">
+          <img [src]="img" [alt]="producto?.nombre" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN DEL PRODUCTO -->
+    <div class="info-section">
+
+      <!-- Marca y categoría -->
+      <div class="top-meta">
+        <span class="brand-tag" *ngIf="producto?.marca">{{ producto?.marca }}</span>
+        <span class="category-tag">{{ producto?.categoria }}</span>
+        <span class="new-tag" *ngIf="producto?.nuevo">NUEVO</span>
+      </div>
+
+      <h1 class="product-title">{{ producto?.nombre }}</h1>
+      <p class="product-subtitle" *ngIf="producto?.modelo">{{ producto?.modelo }}</p>
+
+      <!-- Rating y reseñas -->
+      <div class="rating-section" *ngIf="producto?.rating">
+        <div class="stars-display">
+          <span class="stars-big">{{ ratingHalfStars(producto?.rating ?? 0) }}</span>
+          <span class="rating-num">{{ (producto?.rating ?? 0).toFixed(1) }}</span>
+        </div>
+        <span class="reviews-link" (click)="tabActiva = 'comentarios'">
+          {{ producto?.totalRatings || comentarios.length }} opiniones
+        </span>
+      </div>
+
+      <!-- PRECIO PRINCIPAL -->
+      <div class="pricing-block">
+        <ng-container *ngIf="esOferta(); else precioNormal">
+          <div class="price-original">
+            <span class="was-label">Antes:</span>
+            <span class="was-price">${{ precioOriginal() | number:'1.0-0' }}</span>
+          </div>
+          <div class="price-current">
+            <span class="now-label">Ahora:</span>
+            <span class="now-price">${{ precioFinal() | number:'1.0-0' }}</span>
+            <span class="pct-off">-{{ descuento() }}%</span>
+          </div>
+          <div class="savings-box">
+            💰 Ahorras ${{ (precioOriginal() - precioFinal()) | number:'1.0-0' }} con esta oferta
+          </div>
+        </ng-container>
+        <ng-template #precioNormal>
+          <div class="price-current">
+            <span class="now-price normal">${{ precioFinal() | number:'1.0-0' }}</span>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- STOCK Y ENVÍO -->
+      <div class="availability-block">
+        <div class="stock-status" [ngClass]="'stock-' + stockClass()">
+          <span class="status-dot"></span>
+          <span class="status-text">{{ stockLabel() }}</span>
+        </div>
+        <div class="delivery-info">
+          <span class="delivery-icon">🚚</span>
+          <span>Despacho gratis a todo el país</span>
+        </div>
+        <div class="warranty-info" *ngIf="producto?.garantia">
+          <span class="warranty-icon">🛡️</span>
+          <span>{{ producto?.garantia }}</span>
+        </div>
+      </div>
+
+      <!-- CANTIDAD + AGREGAR -->
+      <div class="purchase-block">
+        <div class="qty-selector">
+          <button class="qty-btn" (click)="disminuirCantidad()" [disabled]="cantidad <= 1">−</button>
+          <span class="qty-val">{{ cantidad }}</span>
+          <button class="qty-btn" (click)="aumentarCantidad()" [disabled]="!puedeAumentarCantidad()">+</button>
+        </div>
+
+        <div class="action-buttons">
+          <button 
+            class="btn-add-cart" 
+            (click)="agregarAlCarrito()" 
+            [disabled]="!(producto?.stock)">
+            🛒 Agregar al Carrito
+          </button>
+          <button 
+            class="btn-buy-now" 
+            (click)="comprarAhora()" 
+            [disabled]="!(producto?.stock)">
+            ⚡ Comprar Ahora
+          </button>
+        </div>
+      </div>
+
+      <!-- SPECS RÁPIDAS -->
+      <div class="quick-specs" *ngIf="especificacionesExisten()">
+        <div class="spec-item" *ngFor="let spec of especificaciones().slice(0, 4)">
+          <span class="spec-label">{{ spec.label }}</span>
+          <span class="spec-value">{{ spec.value }}</span>
+        </div>
+      </div>
+
+    </div><!-- /info-section -->
+  </div><!-- /product-main -->
+
+  <!-- ======================================================
+       TABS: Descripción, Especificaciones, Comentarios
+       ====================================================== -->
+  <div class="tabs-block">
+    <div class="tabs-nav">
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActiva === 'descripcion'" 
+        (click)="tabActiva = 'descripcion'">
+        📖 Descripción
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActiva === 'especificaciones'" 
+        (click)="tabActiva = 'especificaciones'"
+        *ngIf="especificacionesExisten()">
+        📋 Especificaciones
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActiva === 'comentarios'" 
+        (click)="tabActiva = 'comentarios'">
+        💬 Reseñas ({{ comentarios.length }})
+      </button>
+    </div>
+
+    <!-- TAB: Descripción -->
+    <div class="tab-content" *ngIf="tabActiva === 'descripcion'">
+      <div class="desc-short" *ngIf="producto.descripcionCorta">
+        <p class="lead-text">{{ producto.descripcionCorta }}</p>
+      </div>
+      <div class="desc-long">
+        <p>{{ producto.descripcion }}</p>
+      </div>
+      <div class="info-boxes">
+        <div class="info-box">
+          <span class="info-icon">🚚</span>
+          <div>
+            <strong>Despacho express</strong>
+            <p>Envío gratis en compras sobre $30.000. Llega en 24-48 horas hábiles.</p>
+          </div>
+        </div>
+        <div class="info-box" *ngIf="producto.garantia">
+          <span class="info-icon">🛡️</span>
+          <div>
+            <strong>Garantía del fabricante</strong>
+            <p>{{ producto.garantia }}</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <span class="info-icon">↩️</span>
+          <div>
+            <strong>Devoluciones gratis</strong>
+            <p>Tienes 30 días para devolver el producto si no estás satisfecho.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Especificaciones -->
+    <div class="tab-content" *ngIf="tabActiva === 'especificaciones' && especificacionesExisten()">
+      <table class="specs-table">
+        <tbody>
+          <tr *ngFor="let spec of especificaciones()">
+            <td class="spec-name">{{ spec.label }}</td>
+            <td class="spec-val">{{ spec.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB: Comentarios / Reseñas -->
+    <div class="tab-content" *ngIf="tabActiva === 'comentarios'">
+
+      <!-- Resumen rating -->
+      <div class="rating-summary" *ngIf="comentarios.length > 0">
+        <div class="rating-big">
+          <span class="big-number">{{ promedioComentarios() }}</span>
+          <div class="rating-stars-big">{{ ratingStars(promedioComentarios()) }}</div>
+          <span class="rating-total">{{ comentarios.length }} reseñas</span>
+        </div>
+      </div>
+
+      <!-- Lista de comentarios -->
+      <div class="comments-list" *ngIf="comentarios.length > 0; else sinComentarios">
+        <div class="comment-card" *ngFor="let c of comentarios">
+
+          <!-- Cabecera del comentario -->
+          <div class="comment-header">
+            <div class="comment-avatar">
+              {{ c.nombreCliente.charAt(0).toUpperCase() }}
+            </div>
+            <div class="comment-meta">
+              <span class="comment-author">{{ c.nombreCliente }}</span>
+              <span class="verified-badge" *ngIf="c.compraVerificada">✅ Compra verificada</span>
+              <span class="comment-date">{{ tiempoRelativo(c.fecha) }}</span>
+            </div>
+            <div class="comment-stars">{{ ratingStars(c.calificacion) }}</div>
+          </div>
+
+          <!-- Texto del comentario -->
+          <p class="comment-text">"{{ c.comentario }}"</p>
+
+          <!-- Respuesta de la empresa -->
+          <div class="company-reply" *ngIf="c.respuestaEmpresa">
+            <div class="reply-header">
+              <span class="reply-icon">🏪</span>
+              <strong>SmartLogix respondió:</strong>
+            </div>
+            <p class="reply-text">{{ c.respuestaEmpresa }}</p>
+          </div>
+
+        </div>
+      </div>
+
+      <ng-template #sinComentarios>
+        <div class="no-comments">
+          <span>💬 Sé el primero en dejar una reseña sobre este producto.</span>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- ======================================================
+       PRODUCTOS RELACIONADOS
+       ====================================================== -->
+  <div class="related-section" *ngIf="relacionados.length > 0">
+    <h2 class="related-title">📦 Productos Relacionados</h2>
+    <p class="related-subtitle">Otros productos de la categoría {{ producto.categoria }}</p>
+    <div class="related-grid">
+      <app-product-card 
+        *ngFor="let rel of relacionados" 
+        [producto]="rel">
+      </app-product-card>
+    </div>
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<!-- LOADING -->
+<div class="loading-wrap" *ngIf="loading">
+  <app-loading-spinner></app-loading-spinner>
+</div>
+
+<!-- ERROR -->
+<div class="error-wrap" *ngIf="error && !loading">
+  <div class="error-card">
+    <span class="error-icon">❌</span>
+    <p>{{ error }}</p>
+    <button class="btn-back" routerLink="/catalogo">← Volver al Catálogo</button>
+  </div>
+</div>

@@ -1,0 +1,52 @@
+<div class="carousel-container" *ngIf="bannersActivos && bannersActivos.length > 0">
+
+  <div class="carousel">
+
+    <div class="slide-content" 
+         [style.background]="bannersActivos[currentIndex].color"
+         (click)="onBannerClick(bannersActivos[currentIndex])"
+         style="cursor: pointer;">
+      
+      <div class="banner-content">
+        <span class="banner-icon">{{ bannersActivos[currentIndex].icono }}</span>
+        <h2 class="banner-title">{{ bannersActivos[currentIndex].titulo }}</h2>
+        <p class="banner-description">{{ bannersActivos[currentIndex].descripcion }}</p>
+        <button class="banner-cta">
+          {{ bannersActivos[currentIndex].cta }} →
+        </button>
+      </div>
+    </div>
+
+    <button
+      class="arrow left"
+      (click)="prevSlide()"
+      aria-label="Anterior"
+      *ngIf="bannersActivos.length > 1"
+    >
+      ❮
+    </button>
+
+    <button
+      class="arrow right"
+      (click)="nextSlide()"
+      aria-label="Siguiente"
+      *ngIf="bannersActivos.length > 1"
+    >
+      ❯
+    </button>
+
+  </div>
+
+  <div class="indicators" *ngIf="bannersActivos.length > 1">
+
+    <span
+      *ngFor="let banner of bannersActivos; let i = index"
+      [class.active]="i === currentIndex"
+      (click)="goToSlide(i)"
+      [attr.aria-label]="'Ir a slide ' + (i + 1)"
+    >
+    </span>
+
+  </div>
+
+</div>

@@ -1,0 +1,160 @@
+<section class="usuarios-container container animate-fade-in">
+  
+  <div class="header mb-6 flex justify-between items-end">
+    <div>
+      <h1 class="m-0 mb-2">Gestión de Usuarios</h1>
+      <p class="text-muted m-0">Administra los accesos y permisos del sistema</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary" (click)="abrirModalCrear()">
+        ➕ Crear Vendedor/Chofer
+      </button>
+      <button class="btn btn-secondary" (click)="cargarUsuarios()">
+        🔄 Recargar
+      </button>
+    </div>
+  </div>
+
+  <!-- SKELETON LOADER -->
+  <div *ngIf="loading" class="card p-0" style="overflow: hidden;">
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: var(--bg-secondary);">
+          <th class="text-left p-4">ID</th>
+          <th class="text-left p-4">Nombre</th>
+          <th class="text-left p-4">Email</th>
+          <th class="text-left p-4">Rol</th>
+          <th class="text-left p-4">Estado</th>
+          <th class="text-right p-4">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1,2,3,4,5]" style="border-top: 1px solid var(--border);">
+          <td class="p-4"><div class="skeleton-box" style="height: 16px; width: 40px;"></div></td>
+          <td class="p-4"><div class="skeleton-box" style="height: 16px; width: 120px;"></div></td>
+          <td class="p-4"><div class="skeleton-box" style="height: 16px; width: 160px;"></div></td>
+          <td class="p-4"><div class="skeleton-box" style="height: 24px; width: 80px; border-radius: 12px;"></div></td>
+          <td class="p-4"><div class="skeleton-box" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
+          <td class="p-4 text-right"><div class="skeleton-box" style="height: 32px; width: 90px; display: inline-block;"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && usuarios && usuarios.length === 0" class="empty-state text-center p-8 mt-6">
+    <span class="empty-icon block mb-4" style="font-size: 4rem;">👥</span>
+    <h3 class="mb-2">No se encontraron usuarios</h3>
+    <p class="text-muted">No hay usuarios registrados en el sistema.</p>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="card p-0" style="overflow: hidden;" *ngIf="!loading && usuarios && usuarios.length > 0">
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border);">
+          <th class="text-left p-4 text-muted font-semibold text-sm">ID</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">NOMBRE</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">EMAIL</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">ROL</th>
+          <th class="text-left p-4 text-muted font-semibold text-sm">ESTADO</th>
+          <th class="text-right p-4 text-muted font-semibold text-sm">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuarios" style="border-bottom: 1px solid var(--border);" class="hover-bg">
+          <td class="p-4 font-mono text-sm">{{ u.id || (u.auth0Id | slice:0:8) }}</td>
+          <td class="p-4 font-semibold">{{ u.nombre }}</td>
+          <td class="p-4 text-muted">{{ u.email }}</td>
+          <td class="p-4">
+            <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary);">
+              {{ u.rol }}
+            </span>
+          </td>
+          <td class="p-4">
+            <span class="badge" 
+                  [style.background]="u.estado === 'ACTIVO' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'"
+                  [style.color]="u.estado === 'ACTIVO' ? 'var(--success)' : '#ef4444'">
+              {{ u.estado || 'ACTIVO' }}
+            </span>
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex gap-2 justify-end">
+              <button class="btn btn-outline btn-sm" (click)="timeoutUsuario(u.id, u.nombre, 7)" [disabled]="accionId === u.id" title="Suspender 7 días">
+                ⏱️ 7d
+              </button>
+              <button class="btn btn-outline btn-sm" (click)="timeoutUsuario(u.id, u.nombre, 30)" [disabled]="accionId === u.id" title="Suspender 30 días">
+                ⏱️ 30d
+              </button>
+              <button *ngIf="u.estado === 'ACTIVO'" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" 
+                      (click)="desactivar(u.id, u.nombre)" [disabled]="accionId === u.id">
+                <span *ngIf="accionId === u.id" class="spinner-small mr-1"></span>
+                {{ accionId === u.id ? '...' : '🚫' }}
+              </button>
+              <button *ngIf="u.estado !== 'ACTIVO'" class="btn btn-outline btn-sm" style="color: var(--success); border-color: var(--success);" 
+                      (click)="activar(u.id, u.nombre)" [disabled]="accionId === u.id">
+                <span *ngIf="accionId === u.id" class="spinner-small mr-1"></span>
+                {{ accionId === u.id ? '...' : '✓' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<!-- MODAL CREAR VENDEDOR/CHOFER -->
+<div *ngIf="mostrarModalCrear" class="modal-overlay" (click)="cerrarModalCrear()">
+  <div class="modal-content animate-fade-in" style="max-width: 600px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Crear Vendedor o Chofer</h2>
+      <button class="btn-close" (click)="cerrarModalCrear()" [disabled]="creando">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="crearUsuario()">
+        <div class="form-group">
+          <label for="tipo">Tipo de Usuario *</label>
+          <select id="tipo" [(ngModel)]="nuevoUsuario.rol" name="tipo" class="form-control" required [disabled]="creando">
+            <option value="VENDEDOR">Vendedor</option>
+            <option value="CHOFER">Chofer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">Nombre Completo *</label>
+          <input type="text" id="nombre" [(ngModel)]="nuevoUsuario.nombre" name="nombre" class="form-control" required [disabled]="creando">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" [(ngModel)]="nuevoUsuario.email" name="email" class="form-control" required [disabled]="creando">
+        </div>
+
+        <div class="form-group">
+          <label for="documento">Documento de Identidad *</label>
+          <input type="text" id="documento" [(ngModel)]="nuevoUsuario.documentoIdentidad" name="documento" class="form-control" placeholder="RUT o DNI" required [disabled]="creando">
+          <small class="text-muted">Ej: 12.345.678-9</small>
+        </div>
+
+        <div class="form-group mb-0">
+          <label>Foto Documento (Opcional)</label>
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" class="form-control" [disabled]="creando">
+          <small class="text-muted">Sube foto del documento por delante y atrás</small>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer flex gap-2 justify-end mt-4 pt-4" style="border-top: 1px solid var(--border);">
+      <button (click)="cerrarModalCrear()" class="btn btn-secondary" [disabled]="creando">
+        Cancelar
+      </button>
+      <button (click)="crearUsuario()" class="btn btn-primary" [disabled]="creando || !nuevoUsuario.nombre || !nuevoUsuario.email || !nuevoUsuario.documentoIdentidad">
+        <span *ngIf="creando" class="spinner-small mr-2"></span>
+        {{ creando ? 'Creando...' : '➕ Crear Usuario' }}
+      </button>
+    </div>
+  </div>
+</div>

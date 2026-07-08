@@ -1,0 +1,47 @@
+<div class="location-picker-container">
+  <div class="location-trigger" (click)="toggleDropdown()">
+    <span class="location-icon">📍</span>
+    <div class="location-info">
+      <span class="location-title">¿Dónde quieres recibir tu compra?</span>
+      <span class="location-subtitle" *ngIf="ubicacionGuardada">
+        Enviando a {{ ubicacionGuardada.comuna }}, {{ ubicacionGuardada.region }}
+      </span>
+      <span class="location-subtitle" *ngIf="!ubicacionGuardada">
+        Ingresa tu ubicación
+      </span>
+    </div>
+  </div>
+
+  <div class="location-dropdown" *ngIf="isOpen">
+    <div class="dropdown-header">
+      <h4>📍 Elige dónde recibir tus compras</h4>
+      <button class="close-btn" (click)="closeDropdown()">&times;</button>
+    </div>
+    
+    <p class="dropdown-desc">
+      Ingresa tu ubicación y te mostraremos los productos disponibles con tiempos y costos de entrega precisos.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">Región</label>
+      <select class="form-control" [(ngModel)]="regionSeleccionada" (change)="onRegionChange()">
+        <option value="">Selecciona una región</option>
+        <option *ngFor="let r of regiones" [value]="r.nombre">{{ r.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Comuna</label>
+      <select class="form-control" [(ngModel)]="comunaSeleccionada" [disabled]="!regionSeleccionada">
+        <option value="">Selecciona una comuna</option>
+        <option *ngFor="let c of comunasDisponibles" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary w-100 mt-3" (click)="guardarUbicacion()" [disabled]="!regionSeleccionada || !comunaSeleccionada">
+      Guardar
+    </button>
+  </div>
+  
+  <div class="overlay" *ngIf="isOpen" (click)="closeDropdown()"></div>
+</div>

@@ -1,0 +1,116 @@
+<section class="envios-chofer-container container animate-fade-in">
+  
+  <div class="header mb-6">
+    <h1 class="m-0 mb-2">Mis Envíos</h1>
+    <p class="text-muted m-0">Gestiona tus envíos asignados y actualiza sus estados en tiempo real</p>
+  </div>
+
+  <div class="card mb-6" style="background: var(--bg-secondary);">
+    <div class="flex items-center gap-4 flex-wrap">
+      <div class="flex items-center gap-2">
+        <label for="filtro-estado" class="font-semibold text-sm">Filtrar por estado:</label>
+        <select id="filtro-estado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="form-control" style="width: auto; min-width: 150px;">
+          <option *ngFor="let estado of estadosDisponibles" [value]="estado.value">
+            {{ estado.label }}
+          </option>
+        </select>
+      </div>
+      <button class="btn btn-secondary" (click)="cargarEnvios()" [disabled]="loading">
+        <span *ngIf="loading" class="spinner-small mr-1"></span>
+        🔄 Recargar
+      </button>
+    </div>
+  </div>
+
+  <!-- SKELETON LOADER -->
+  <div *ngIf="loading" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    <div class="card p-4" *ngFor="let i of [1,2,3]">
+      <div class="flex justify-between items-start mb-4 pb-4" style="border-bottom: 1px solid var(--border);">
+        <div>
+          <div class="skeleton-box mb-2" style="height: 24px; width: 100px;"></div>
+          <div class="skeleton-box" style="height: 16px; width: 140px;"></div>
+        </div>
+        <div class="skeleton-box" style="height: 24px; width: 80px; border-radius: 12px;"></div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between"><div class="skeleton-box" style="height: 16px; width: 60px;"></div><div class="skeleton-box" style="height: 16px; width: 80px;"></div></div>
+        <div class="flex justify-between"><div class="skeleton-box" style="height: 16px; width: 60px;"></div><div class="skeleton-box" style="height: 16px; width: 120px;"></div></div>
+        <div class="flex justify-between"><div class="skeleton-box" style="height: 16px; width: 60px;"></div><div class="skeleton-box" style="height: 16px; width: 100px;"></div></div>
+      </div>
+      <div class="skeleton-box" style="height: 36px; width: 100%; border-radius: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && enviosFiltrados.length === 0" class="empty-state text-center p-8 mt-6">
+    <span class="empty-icon block mb-4" style="font-size: 4rem;">🚚</span>
+    <h3 class="mb-2">No tienes envíos asignados</h3>
+    <p class="text-muted">No se encontraron envíos {{ filtroEstado === 'TODOS' ? '' : 'en estado ' + filtroEstado.toLowerCase() }}.</p>
+  </div>
+
+  <!-- DATA GRID -->
+  <div *ngIf="!loading && enviosFiltrados.length > 0" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    <div *ngFor="let envio of enviosFiltrados" class="card" style="display: flex; flex-direction: column;">
+      
+      <div class="flex justify-between items-start mb-4 pb-4" style="border-bottom: 1px solid var(--border);">
+        <div>
+          <h3 class="m-0 mb-1" style="font-size: 1.1rem;">Envío #{{ envio.id }}</h3>
+          <code class="text-xs" style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;">{{ envio.trackingCode || 'Sin código' }}</code>
+        </div>
+        <span class="badge" 
+              [ngClass]="{
+                'badge-warning': envio.estado === 'PENDIENTE',
+                'badge-info': envio.estado === 'EN_CAMINO',
+                'badge-success': envio.estado === 'ENTREGADO'
+              }"
+              [style.background]="envio.estado === 'PENDIENTE' ? 'rgba(245, 158, 11, 0.1)' : (envio.estado === 'EN_CAMINO' ? 'rgba(14, 165, 233, 0.1)' : 'rgba(16, 185, 129, 0.1)')"
+              [style.color]="envio.estado === 'PENDIENTE' ? 'var(--warning)' : (envio.estado === 'EN_CAMINO' ? '#0ea5e9' : 'var(--success)')">
+          {{ envio.estado }}
+        </span>
+      </div>
+
+      <div class="mb-6 flex-grow-1 text-sm space-y-2">
+        <div class="flex justify-between">
+          <span class="text-muted">Pedido:</span>
+          <span class="font-semibold">#{{ envio.pedidoId }}</span>
+        </div>
+        <div class="flex justify-between text-right">
+          <span class="text-muted">Dirección:</span>
+          <span>{{ envio.direccionEnvio || 'No especificada' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-muted">Ciudad:</span>
+          <span>{{ envio.ciudadEnvio || 'No especificada' }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-muted">Fecha:</span>
+          <span>{{ envio.fechaCreacion | date:'short' }}</span>
+        </div>
+      </div>
+
+      <div class="mt-auto">
+        <button *ngIf="puedeIniciar(envio)"
+                class="btn btn-primary w-full"
+                (click)="actualizarEstado(envio, 'EN_CAMINO')"
+                [disabled]="accionId === envio.id">
+          <span *ngIf="accionId === envio.id" class="spinner-small mr-2"></span>
+          🚚 Iniciar Entrega
+        </button>
+
+        <button *ngIf="puedeEntregar(envio)"
+                class="btn btn-outline w-full" style="color: var(--success); border-color: var(--success);"
+                (click)="actualizarEstado(envio, 'ENTREGADO')"
+                [disabled]="accionId === envio.id">
+          <span *ngIf="accionId === envio.id" class="spinner-small mr-2"></span>
+          ✅ Marcar Entregado
+        </button>
+
+        <div *ngIf="envio.estado === 'ENTREGADO'" 
+             class="text-center p-2 rounded" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: 600;">
+          🎉 Entregado Exitosamente
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

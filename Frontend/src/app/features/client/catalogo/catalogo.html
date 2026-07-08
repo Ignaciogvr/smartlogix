@@ -1,0 +1,170 @@
+<section class="catalogo-container container animate-fade-in">
+
+  <!-- Hero Header -->
+  <div class="catalogo-hero text-center mb-6">
+    <div class="hero-text">
+      <h1>Catálogo <span class="highlight">SmartLogix</span></h1>
+      <p class="text-muted">{{ todos.length }} productos disponibles para entrega inmediata</p>
+    </div>
+    <div class="search-wrapper mx-auto mt-4" style="max-width: 600px;">
+      <app-search-bar (buscar)="onBuscar($event)" [placeholder]="'Buscar productos en el catálogo...'"></app-search-bar>
+    </div>
+  </div>
+
+  <div class="catalogo-body">
+
+    <!-- ========== SIDEBAR FILTROS ========== -->
+    <aside class="filtros-sidebar card">
+
+      <div class="filtros-header flex justify-between items-center mb-4 pb-2" style="border-bottom: 1px solid var(--border);">
+        <h3 class="m-0" style="font-size: 1.15rem;">🔽 Filtros</h3>
+        <button *ngIf="hayFiltrosActivos()" class="btn-limpiar" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+
+      <!-- Categorías -->
+      <div class="filtro-grupo mb-4">
+        <h4 class="filtro-titulo mb-2">Categorías</h4>
+        <div class="cat-list flex flex-col gap-1">
+          <button
+            class="cat-btn"
+            [class.active]="!categoriaActiva"
+            (click)="seleccionarCategoria('')">
+            <span>Todas</span>
+            <span class="cat-count-badge">{{ todos.length }}</span>
+          </button>
+          <button
+            *ngFor="let cat of categorias"
+            class="cat-btn"
+            [class.active]="categoriaActiva === cat"
+            (click)="seleccionarCategoria(cat)">
+            <span>{{ cat }}</span>
+            <span class="cat-count-badge">{{ cantidadPorCategoria(cat) }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Precio -->
+      <div class="filtro-grupo mb-4">
+        <h4 class="filtro-titulo mb-2">Precio</h4>
+        <div class="precio-inputs flex flex-col gap-2">
+          <div class="price-input-wrap">
+            <label class="form-label text-xs">Mínimo $</label>
+            <input
+              type="number"
+              class="form-control"
+              placeholder="0"
+              [value]="precioMin ?? ''"
+              (change)="onPrecioMinChange($any($event.target).value)"
+              min="0">
+          </div>
+          <div class="price-input-wrap">
+            <label class="form-label text-xs">Máximo $</label>
+            <input
+              type="number"
+              class="form-control"
+              placeholder="Sin límite"
+              [value]="precioMax ?? ''"
+              (change)="onPrecioMaxChange($any($event.target).value)"
+              min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock -->
+      <div class="filtro-grupo mb-4">
+        <h4 class="filtro-titulo mb-2">Disponibilidad</h4>
+        <label class="toggle-label flex items-center gap-2" style="cursor: pointer;">
+          <input
+            type="checkbox"
+            [(ngModel)]="soloConStock"
+            (change)="onStockChange()"
+            style="width: 18px; height: 18px;">
+          <span class="toggle-text text-sm">Solo con stock</span>
+        </label>
+      </div>
+
+      <!-- Ordenamiento -->
+      <div class="filtro-grupo">
+        <h4 class="filtro-titulo mb-2">Ordenar por</h4>
+        <select class="form-control select-orden" [(ngModel)]="ordenamiento" (ngModelChange)="onOrdenamientoChange()">
+          <option value="defecto">Relevancia</option>
+          <option value="precio_asc">Precio: Menor a mayor</option>
+          <option value="precio_desc">Precio: Mayor a menor</option>
+          <option value="nombre_asc">Nombre: A → Z</option>
+          <option value="nombre_desc">Nombre: Z → A</option>
+        </select>
+      </div>
+
+    </aside>
+
+    <!-- ========== CONTENIDO PRINCIPAL ========== -->
+    <main class="catalogo-main">
+
+      <!-- Breadcrumb / Filtros activos -->
+      <div class="filtros-activos mb-4 flex items-center gap-2 flex-wrap" *ngIf="hayFiltrosActivos()">
+        <span class="filtros-label text-sm text-muted">Filtros activos:</span>
+        <span class="badge badge-info" *ngIf="categoriaActiva" (click)="seleccionarCategoria('')" style="cursor: pointer;">
+          📂 {{ categoriaActiva }} ✕
+        </span>
+        <span class="badge badge-info" *ngIf="searchText" (click)="onBuscar('')" style="cursor: pointer;">
+          🔍 "{{ searchText }}" ✕
+        </span>
+        <span class="badge badge-info" *ngIf="precioMin" (click)="onPrecioMinChange('')" style="cursor: pointer;">
+          💰 Desde ${{ precioMin | number }} ✕
+        </span>
+        <span class="badge badge-info" *ngIf="precioMax" (click)="onPrecioMaxChange('')" style="cursor: pointer;">
+          💰 Hasta ${{ precioMax | number }} ✕
+        </span>
+        <span class="badge badge-info" *ngIf="soloConStock" (click)="soloConStock = false; onStockChange()" style="cursor: pointer;">
+          ✅ Con stock ✕
+        </span>
+        <span class="resultados-count text-xs text-muted ml-auto">{{ productos.length }} resultado{{ productos.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="alert error-state text-center p-6">
+        <span>⚠️</span>
+        <p>{{ error }}</p>
+      </div>
+
+      <!-- Loading with Skeleton Cards -->
+      <div *ngIf="loading" class="productos-grid">
+        <div *ngFor="let i of [1,2,3,4,5,6]" class="card p-0" style="overflow: hidden; min-height: 380px;">
+          <div class="skeleton-box" style="height: 200px; width: 100%;"></div>
+          <div class="p-4">
+            <div class="skeleton-box mb-2" style="height: 20px; width: 70%;"></div>
+            <div class="skeleton-box mb-2" style="height: 14px; width: 100%;"></div>
+            <div class="skeleton-box mb-4" style="height: 14px; width: 85%;"></div>
+            <div class="flex justify-between items-center mt-4">
+              <div class="skeleton-box" style="height: 28px; width: 100px;"></div>
+              <div class="skeleton-box" style="height: 38px; width: 38px; border-radius: 50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid productos -->
+      <div *ngIf="!loading && productos.length > 0" class="productos-grid">
+        <app-product-card
+          *ngFor="let producto of productos; let i = index"
+          [producto]="producto"
+          [style.animation-delay]="(i * 0.04) + 's'"
+          class="staggered-fade-in">
+        </app-product-card>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="!loading && productos.length === 0 && !error" class="empty-state">
+        <div class="empty-icon" style="font-size: 4rem;">🔍</div>
+        <h3>No encontramos resultados</h3>
+        <p class="text-muted" *ngIf="hayFiltrosActivos()">Intenta ajustar los filtros o busca con otros términos.</p>
+        <p class="text-muted" *ngIf="!hayFiltrosActivos()">No hay productos disponibles en este momento.</p>
+        <button class="btn btn-primary mt-4" (click)="limpiarFiltros()" *ngIf="hayFiltrosActivos()">
+          Ver todo el catálogo
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+</section>

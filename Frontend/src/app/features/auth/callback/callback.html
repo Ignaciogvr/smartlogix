@@ -1,0 +1,18 @@
+<div class="callback-container">
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-large mb-4"></div>
+    <h2>Autenticando...</h2>
+    <p>{{ statusMsg }}</p>
+  </div>
+
+  <div *ngIf="!loading && error" class="error-container text-center">
+    <span class="error-icon" style="font-size: 4rem;">⚠️</span>
+    <h2>Error de autenticación</h2>
+    <p class="error-message">{{ error }}</p>
+    <div class="mt-4">
+      <button class="btn btn-primary" (click)="volverAlInicio()">Volver al inicio</button>
+    </div>
+  </div>
+
+</div>

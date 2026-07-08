@@ -1,0 +1,101 @@
+<div class="sidebar">
+
+  <!-- HEADER -->
+  <div class="sidebar-header">
+
+    <h2>SmartLogix</h2>
+
+    <span class="role">
+      {{ user?.role || user?.rol || 'Administrador' }}
+    </span>
+
+  </div>
+
+  <!-- PERFIL -->
+  <div class="user-box">
+
+    <div class="avatar">
+      {{ user?.nombre?.charAt(0) || 'A' }}
+    </div>
+
+    <div class="user-info">
+
+      <h4>
+        {{ user?.nombre || 'Usuario' }}
+      </h4>
+
+      <p>
+        {{ user?.email || 'admin@smartlogix.cl' }}
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- MENÚ -->
+  <nav class="menu">
+
+    <!-- DASHBOARD -->
+    <a
+      routerLink="/admin/dashboard"
+      routerLinkActive="active">
+
+      📊 Dashboard
+    </a>
+
+    <!-- PRODUCTOS -->
+    <a
+      *ngIf="isAdmin || isVendedor"
+      routerLink="/admin/productos"
+      routerLinkActive="active">
+
+      📦 Productos
+    </a>
+
+    <!-- INVENTARIO -->
+    <a
+      *ngIf="isAdmin || isVendedor"
+      routerLink="/admin/inventario"
+      routerLinkActive="active">
+
+      🏬 Inventario
+    </a>
+
+    <!-- PEDIDOS -->
+    <a
+      routerLink="/admin/pedidos"
+      routerLinkActive="active">
+
+      🧾 Pedidos
+    </a>
+
+    <!-- USUARIOS -->
+    <a
+      *ngIf="isAdmin"
+      routerLink="/admin/usuarios"
+      routerLinkActive="active">
+
+      👥 Usuarios
+    </a>
+
+    <!-- ENVÍOS -->
+    <a
+      *ngIf="isAdmin || isLogistica"
+      routerLink="/admin/envios"
+      routerLinkActive="active">
+
+      🚚 Envíos
+    </a>
+
+  </nav>
+
+  <!-- FOOTER -->
+  <div class="sidebar-footer">
+
+    <button (click)="logout()">
+      Cerrar sesión
+    </button>
+
+  </div>
+
+</div>

@@ -1,0 +1,112 @@
+<section class="perfil-container container animate-fade-in">
+
+  <div class="perfil-card mx-auto" style="max-width: 700px;">
+
+    <div class="perfil-header text-center">
+      <h1>Mi Perfil</h1>
+      <p class="text-muted">Administra tu información personal y preferencias</p>
+    </div>
+
+    <!-- Spinner Load -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center p-8">
+      <div class="loading-spinner"></div>
+      <p class="text-muted mt-2">Cargando perfil...</p>
+    </div>
+
+    <div *ngIf="!loading && perfil" class="perfil-card-body">
+      
+      <!-- Avatar & Meta Headers -->
+      <div class="perfil-resumen flex items-center gap-4 mb-6">
+        <div class="avatar">{{ iniciales }}</div>
+        <div class="perfil-meta">
+          <h2 class="m-0" style="font-size: 1.5rem;">{{ nombreCompleto }}</h2>
+          <p class="perfil-email text-muted m-0">{{ perfil.email }}</p>
+          <div class="perfil-badges mt-2 flex gap-2">
+            <span class="badge badge-info">{{ rol }}</span>
+            <span class="badge badge-success">{{ estadoCuenta }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert states -->
+      <div *ngIf="error" class="alert alert-danger mb-4" style="background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; padding: 1rem; border-radius: 8px;">
+        ⚠️ {{ error }}
+      </div>
+
+      <div *ngIf="success" class="alert alert-success mb-4" style="background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; padding: 1rem; border-radius: 8px;">
+        ✅ {{ success }}
+      </div>
+
+      <!-- Profile Form -->
+      <form class="perfil-form" (ngSubmit)="guardarPerfil()">
+        
+        <div class="form-row flex gap-4 mb-4">
+          <div class="form-group flex-1">
+            <label class="form-label">Nombre</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="perfil.nombre"
+              name="nombre"
+              (ngModelChange)="actualizarResumenPerfil()"
+              [disabled]="guardando">
+          </div>
+
+          <div class="form-group flex-1">
+            <label class="form-label">Apellido</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="perfil.apellido"
+              name="apellido"
+              (ngModelChange)="actualizarResumenPerfil()"
+              [disabled]="guardando">
+          </div>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            [(ngModel)]="perfil.email"
+            name="email"
+            disabled
+            style="cursor: not-allowed; opacity: 0.7;">
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label">Teléfono</label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="perfil.telefono"
+            name="telefono"
+            [disabled]="guardando">
+        </div>
+
+        <div class="form-group mb-6">
+          <label class="form-label">Dirección</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            [(ngModel)]="perfil.direccion"
+            name="direccion"
+            [disabled]="guardando"
+            placeholder="Tu dirección completa para los envíos"></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary w-full flex items-center justify-center gap-2"
+          [disabled]="guardando">
+          <span *ngIf="guardando" class="spinner-small"></span>
+          {{ guardando ? 'Guardando cambios...' : '💾 Guardar Cambios' }}
+        </button>
+
+      </form>
+    </div>
+
+  </div>
+
+</section>

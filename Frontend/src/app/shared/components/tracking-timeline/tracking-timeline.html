@@ -1,0 +1,32 @@
+<div class="timeline-container">
+
+  <div
+    class="timeline-item"
+    *ngFor="
+      let item of timeline;
+      let i = index
+    "
+  >
+
+    <div
+      class="timeline-circle"
+      [class.completed]="item.completado"
+    >
+      {{ i + 1 }}
+    </div>
+
+    <div class="timeline-content">
+
+      <h4>
+        {{ item.titulo }}
+      </h4>
+
+      <p>
+        {{ item.descripcion }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

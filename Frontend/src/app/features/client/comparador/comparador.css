@@ -1,0 +1,139 @@
+.comparador-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #1f2937;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.25rem;
+  color: #6b7280;
+}
+
+.error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  color: #4b5563;
+}
+
+.btn {
+  display: inline-block;
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: #4338ca;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.comparador-table-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.comparador-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.comparador-table th {
+  padding: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #f9fafb;
+  min-width: 250px;
+  text-align: center;
+}
+
+.comparador-table th:first-child {
+  width: 200px;
+  min-width: 200px;
+  text-align: left;
+  font-size: 1.125rem;
+  color: #374151;
+}
+
+.producto-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.producto-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.producto-nombre {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #111827;
+}
+
+.producto-precio {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin: 0;
+}
+
+.comparador-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  color: #4b5563;
+}
+
+.comparador-table td.feature-name {
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.text-success {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.text-danger {
+  color: #ef4444;
+  font-weight: 500;
+}

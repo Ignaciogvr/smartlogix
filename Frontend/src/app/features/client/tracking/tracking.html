@@ -1,0 +1,222 @@
+<section class="tracking-container container animate-fade-in">
+  <div class="card tracking-card mx-auto" style="max-width: 800px; padding: 2rem;">
+
+    <h1 class="mb-2 text-center">Seguimiento de Pedido</h1>
+
+    <!-- Búsqueda por código -->
+    <div class="mb-4" style="max-width: 480px; margin: 0 auto 1.5rem;">
+      <div style="display: flex; gap: 0.5rem;">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="codigoBusqueda"
+          placeholder="ID de pedido o código de tracking..."
+          (keyup.enter)="buscarManual()"
+          style="flex: 1;"
+        >
+        <button class="btn btn-primary" (click)="buscarManual()" [disabled]="loading">
+          🔍 Buscar
+        </button>
+      </div>
+    </div>
+
+
+    <div *ngIf="estadoCompleto && !loading" class="mb-5 text-center">
+      <p class="text-muted mb-3">Pedido <strong>#{{ estadoCompleto.pedidoId }}</strong></p>
+      
+      <div *ngIf="isCancelado(estadoCompleto.pedidoEstado)" class="alert alert-danger" style="background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; display: inline-block; padding: 0.5rem 2rem; border-radius: 20px; font-weight: bold; margin-bottom: 1.5rem;">
+        🚫 PEDIDO CANCELADO
+      </div>
+
+      <!-- Barra de progreso e-commerce -->
+      <div *ngIf="!isCancelado(estadoCompleto.pedidoEstado)" class="progress-stepper mt-4 px-2">
+        <div class="stepper-line-track"></div>
+        <div class="stepper-line-fill"
+             *ngIf="obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado) >= 0"
+             [style.width]="(obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado) / (pasosPedido.length - 1)) * 100 + '%'"></div>
+
+        <div class="step-point" *ngFor="let paso of pasosPedido; let i = index"
+             [class.active]="i <= obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado)"
+             [class.current]="i === obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado)">
+          <div class="step-circle">
+            <span *ngIf="i < obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado)">✓</span>
+            <span *ngIf="i === obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado)">●</span>
+            <span *ngIf="i > obtenerPasoPedidoActivo(estadoCompleto.pedidoEstado)">○</span>
+          </div>
+          <span class="step-label-text">{{ paso.label }}</span>
+        </div>
+      </div>
+      
+      <div *ngIf="estadoCompleto.pedidoEstado === 'PENDIENTE'" class="mt-4 text-muted text-sm" style="font-style: italic;">
+        ⏳ Tu pedido está pendiente de confirmación.
+      </div>
+      
+      <!-- Botón Cancelar -->
+      <div *ngIf="estadoCompleto.pedidoEstado === 'PENDIENTE' || estadoCompleto.pedidoEstado === 'CONFIRMADO'" class="mt-4">
+        <button class="btn btn-danger btn-sm" (click)="cancelarPedido(estadoCompleto.pedidoId)" [disabled]="cancelando">
+          <span *ngIf="cancelando" class="spinner-small mr-1"></span>
+          ❌ Cancelar Pedido
+        </button>
+      </div>
+    </div>
+
+    <!-- SKELETON LOADING -->
+    <div *ngIf="loading" class="animate-pulse px-4 py-8">
+      <div class="skeleton-box mx-auto mb-2" style="height: 24px; width: 120px; border-radius: 4px;"></div>
+      
+      <div class="flex justify-between items-center mt-8 mb-10">
+        <div class="skeleton-box" style="height: 44px; width: 44px; border-radius: 50%;"></div>
+        <div class="skeleton-box flex-1 mx-2" style="height: 4px;"></div>
+        <div class="skeleton-box" style="height: 44px; width: 44px; border-radius: 50%;"></div>
+        <div class="skeleton-box flex-1 mx-2" style="height: 4px;"></div>
+        <div class="skeleton-box" style="height: 44px; width: 44px; border-radius: 50%;"></div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="skeleton-box mb-3" style="height: 24px; width: 200px;"></div>
+        <div class="skeleton-box mb-2" style="height: 16px; width: 150px;"></div>
+        <div class="skeleton-box" style="height: 16px; width: 180px;"></div>
+      </div>
+      
+      <div class="card">
+        <div class="skeleton-box mb-3" style="height: 24px; width: 150px;"></div>
+        <div class="skeleton-box mb-2" style="height: 80px; width: 100%; border-radius: 8px;"></div>
+        <div class="skeleton-box" style="height: 80px; width: 100%; border-radius: 8px;"></div>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div *ngIf="error && !loading" class="error-state text-center p-8">
+      <span class="error-icon block text-4xl mb-4">🔍</span>
+      <p class="text-muted">{{ error }}</p>
+    </div>
+
+    <!-- ESTADO COMPLETO DEL PEDIDO -->
+    <div *ngIf="estadoCompleto && !loading" class="animate-fade-in">
+
+      <!-- RESUMEN DEL PEDIDO -->
+      <div class="pedido-resumen card mb-5" style="background-color: var(--bg-main)">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-muted">Total pagado:</span>
+          <strong class="text-primary" style="font-size: 1.25rem;">${{ estadoCompleto.total | number:'1.2-2' }}</strong>
+        </div>
+        <div class="flex justify-between items-center mb-2" *ngIf="estadoCompleto.fechaPedido">
+          <span class="text-muted">Fecha del pedido:</span>
+          <span>{{ estadoCompleto.fechaPedido | date:'medium' }}</span>
+        </div>
+        <div class="flex justify-between items-center" *ngIf="estadoCompleto.usuario?.nombre">
+          <span class="text-muted">Cliente:</span>
+          <span>{{ estadoCompleto.usuario.nombre }}</span>
+        </div>
+      </div>
+
+      <!-- ITEMS DEL PEDIDO -->
+      <div *ngIf="estadoCompleto.items?.length > 0" class="mb-5">
+        <h3 class="mb-3">Productos comprados</h3>
+        <div class="card p-0" style="background-color: var(--bg-main); overflow: hidden;">
+          <div class="flex items-center p-4"
+               *ngFor="let item of estadoCompleto.items"
+               style="border-bottom: 1px solid var(--border); gap: 1.25rem; flex-wrap: wrap;">
+            
+            <div class="product-tracking-img">
+              <img *ngIf="item.imagen" [src]="item.imagen" [alt]="item.nombreProducto">
+              <span *ngIf="!item.imagen" style="font-size: 2.5rem; color: var(--text-muted)">📦</span>
+            </div>
+            
+            <div style="flex: 1; min-width: 200px;">
+              <div class="flex justify-between items-start mb-1">
+                <div>
+                  <h4 class="m-0" style="font-size: 1.15rem; font-weight: 700;">{{ item.nombreProducto || ('Producto #' + item.productoId) }}</h4>
+                  <span class="badge badge-info mt-1" *ngIf="item.categoria" style="font-size: 0.75rem;">{{ item.categoria }}</span>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold" style="font-size: 1.1rem;">${{ item.precioUnitario | number:'1.2-2' }}</div>
+                  <div class="text-muted text-sm">Cant: {{ item.cantidad }}</div>
+                </div>
+              </div>
+              <p class="text-muted text-sm m-0 mt-2 line-clamp-2">
+                {{ item.descripcionCorta || 'Sin descripción adicional disponible.' }}
+              </p>
+            </div>
+            
+            <div class="text-right pl-4 subtotal-tracking-col">
+              <div class="text-muted text-xs mb-1 uppercase tracking-wider">Subtotal</div>
+              <div class="font-bold text-primary" style="font-size: 1.25rem;">${{ item.subtotal | number:'1.2-2' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENVÍOS POR VENDEDOR -->
+      <h3 class="mb-3">Envíos Asociados ({{ estadoCompleto.envios?.length || 0 }})</h3>
+
+      <div *ngIf="!estadoCompleto.envios || estadoCompleto.envios.length === 0"
+           class="text-center text-muted card p-6" style="background-color: var(--bg-main)">
+        <p class="mb-2">⏳ Aún no se han generado envíos para este pedido.</p>
+        <p class="text-sm">Los envíos se crean automáticamente cuando el pedido es procesado.</p>
+      </div>
+
+      <div *ngFor="let envio of estadoCompleto.envios" class="card mb-4 p-4" style="background-color: var(--bg-card)">
+
+        <div class="flex justify-between items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border);">
+          <div>
+            <strong style="font-size: 1.1rem;">Envío #{{ envio.envioId }}</strong>
+            <span class="badge ml-2" [ngClass]="{
+              'badge-warning': envio.estado === 'PENDIENTE',
+              'badge-info':   envio.estado === 'EN_PREPARACION' || envio.estado === 'PREPARANDO',
+              'badge-primary':   envio.estado === 'ENVIADO' || envio.estado === 'EN_CAMINO',
+              'badge-success': envio.estado === 'ENTREGADO'
+            }">{{ envio.estado }}</span>
+          </div>
+          <span class="text-muted text-sm font-mono" *ngIf="envio.trackingCode">
+            Cód: <strong>{{ envio.trackingCode }}</strong>
+          </span>
+        </div>
+
+        <div class="envio-details-list text-sm space-y-1 mb-4">
+          <div class="flex justify-between" *ngIf="envio.vendedorId">
+            <span class="text-muted">Vendedor:</span>
+            <span>{{ envio.vendedorId }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="envio.direccionDestino">
+            <span class="text-muted">Destino:</span>
+            <span class="font-semibold">{{ envio.direccionDestino }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="envio.fechaEnvio">
+            <span class="text-muted">Fecha de envío:</span>
+            <span>{{ envio.fechaEnvio | date:'mediumDate' }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="envio.fechaEntregaEstimada">
+            <span class="text-muted">Entrega estimada:</span>
+            <strong class="text-success">{{ envio.fechaEntregaEstimada | date:'mediumDate' }}</strong>
+          </div>
+        </div>
+
+        <!-- Línea de tiempo del envío detallado -->
+        <div class="shipment-timeline mt-4">
+          <div
+            class="timeline-step"
+            *ngFor="let paso of pasos; let i = index"
+            [class.active]="i <= obtenerPasoActivo(envio.estado)">
+            <div class="step-marker">
+              <span class="step-num">{{ i + 1 }}</span>
+            </div>
+            <span class="step-label">{{ paso.label }}</span>
+          </div>
+        </div>
+
+        <!-- Productos de este vendedor en este envío -->
+        <div *ngIf="itemsPorVendedor(envio.vendedorId).length > 0" class="mt-4 pt-3" style="border-top: 1px dashed var(--border);">
+          <p class="text-muted text-xs font-bold uppercase tracking-wider mb-2">Productos en este envío:</p>
+          <div *ngFor="let item of itemsPorVendedor(envio.vendedorId)"
+               class="flex justify-between items-center text-sm py-1">
+            <span>{{ item.nombreProducto || ('Producto #' + item.productoId) }} × {{ item.cantidad }}</span>
+            <span class="font-semibold">${{ item.subtotal | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
