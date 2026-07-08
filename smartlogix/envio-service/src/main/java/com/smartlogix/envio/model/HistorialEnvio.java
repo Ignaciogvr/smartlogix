@@ -14,7 +14,9 @@ public class HistorialEnvio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long envioId;
+    @ManyToOne
+    @JoinColumn(name = "envio_id", nullable = false)
+    private Envio envio;
 
     @Enumerated(EnumType.STRING)
     private EstadoEnvio estado;
@@ -25,8 +27,8 @@ public class HistorialEnvio {
 
     public HistorialEnvio() {}
 
-    public HistorialEnvio(Long envioId, EstadoEnvio estado, String descripcion) {
-        this.envioId = envioId;
+    public HistorialEnvio(Envio envio, EstadoEnvio estado, String descripcion) {
+        this.envio = envio;
         this.estado = estado;
         this.descripcion = descripcion;
         this.fecha = LocalDateTime.now();
@@ -36,12 +38,20 @@ public class HistorialEnvio {
         return id;
     }
 
-    public Long getEnvioId() {
-        return envioId;
+    public Envio getEnvio() {
+        return envio;
+    }
+
+    public void setEnvio(Envio envio) {
+        this.envio = envio;
     }
 
     public EstadoEnvio getEstado() {
         return estado;
+    }
+
+    public void setEstado(EstadoEnvio estado) {
+        this.estado = estado;
     }
 
     public String getDescripcion() {

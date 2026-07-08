@@ -16,4 +16,14 @@ public interface UsuarioService {
     void eliminarPorUserId(String auth0Id);
 
     boolean existePorAuth0Id(String auth0Id);
+
+    Usuario suspenderUsuario(String auth0Id, int dias);
+
+    Usuario activarUsuario(String auth0Id);
+
+    Usuario desactivarUsuario(String auth0Id);
+
+    Usuario crearVendedorOChofer(String nombre, String email, String rol, String documentoIdentidad);
+    
+    Usuario cambiarRol(String id, String nuevoRol);
 }

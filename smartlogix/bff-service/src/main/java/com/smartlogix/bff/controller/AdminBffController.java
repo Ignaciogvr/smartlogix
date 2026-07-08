@@ -1,8 +1,11 @@
 package com.smartlogix.bff.controller;
 
 import com.smartlogix.bff.dto.request.ActualizarEstadoEnvioRequest;
+import com.smartlogix.bff.dto.request.ProductoCreateRequest;
+import com.smartlogix.bff.dto.request.ProductoUpdateRequest;
 import com.smartlogix.bff.dto.response.EnvioResponse;
 import com.smartlogix.bff.dto.response.PedidoResponse;
+import com.smartlogix.bff.dto.response.ProductoCatalogoDTO;
 import com.smartlogix.bff.service.AdminBffService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +18,7 @@ import java.util.List;
  * Expone endpoints /admin/** que requieren rol ADMIN.
  */
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminBffController {
 
@@ -23,6 +26,15 @@ public class AdminBffController {
 
     public AdminBffController(AdminBffService adminService) {
         this.adminService = adminService;
+    }
+
+    // =========================
+    // DASHBOARD - ADMIN
+    // =========================
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<java.util.Map<String, Object>> dashboard() {
+        return ResponseEntity.ok(adminService.obtenerDashboard());
     }
 
     // =========================
@@ -69,5 +81,36 @@ public class AdminBffController {
             @RequestBody ActualizarEstadoEnvioRequest request
     ) {
         return ResponseEntity.ok(adminService.actualizarEstadoEnvio(id, request));
+    }
+
+    // =========================
+    // PRODUCTOS - ADMIN CRUD
+    // Forwarding a inventory-service /admin/productos
+    // =========================
+
+    @GetMapping("/productos")
+    public ResponseEntity<List<ProductoCatalogoDTO>> listarProductos() {
+        return ResponseEntity.ok(adminService.listarProductos());
+    }
+
+    @PostMapping("/productos")
+    public ResponseEntity<ProductoCatalogoDTO> crearProducto(
+            @RequestBody ProductoCreateRequest request
+    ) {
+        return ResponseEntity.ok(adminService.crearProducto(request));
+    }
+
+    @PutMapping("/productos/{id}")
+    public ResponseEntity<ProductoCatalogoDTO> actualizarProducto(
+            @PathVariable Long id,
+            @RequestBody ProductoUpdateRequest request
+    ) {
+        return ResponseEntity.ok(adminService.actualizarProducto(id, request));
+    }
+
+    @DeleteMapping("/productos/{id}")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
+        adminService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
     }
 }

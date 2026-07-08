@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,10 +59,14 @@ public class PedidoServiceImpl implements PedidoService {
         this.historialRepository = historialRepository;
     }
 
+    // Helper to obtain the current user ID from JWT (subject)
+    private String getCurrentUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.isAuthenticated()) ? auth.getName() : null;
+    }
+
     @Override
     public Pedido crearDesdeRequest(PedidoRequestDTO dto, String authHeader) {
-        
-        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PedidoServiceImpl.class);
         
         log.info("[COMPRA] Iniciando creación de pedido - Usuario: {}, Productos: {}", 
                 dto.getUsuarioId(), dto.getProductos() != null ? dto.getProductos().size() : 0);
@@ -98,6 +103,7 @@ public class PedidoServiceImpl implements PedidoService {
                 det.setProductoId(d.getProductoId());
                 det.setCantidad(d.getCantidad());
                 det.setPrecio(d.getPrecioUnitario());
+                det.setVendedorId(d.getVendedorId());
                 det.setPedido(pedido);
 
                 pedido.getDetalles().add(det);
@@ -111,14 +117,17 @@ public class PedidoServiceImpl implements PedidoService {
             log.info("[COMPRA] Guardando pedido en base de datos - Usuario: {}, Total: {}", 
                     dto.getUsuarioId(), total);
             Pedido saved = pedidoRepository.save(pedido);
+            if (saved == null || saved.getId() == null) {
+                log.error("[COMPRA] Error al guardar pedido en BD - Usuario: {}", dto.getUsuarioId());
+                throw new IllegalStateException("Error al guardar pedido en base de datos");
+            }
             log.info("[COMPRA] Pedido guardado con ID: {}", saved.getId());
             
-            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved.getId(), null, EstadoPedido.PENDIENTE));
+            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved, null, EstadoPedido.PENDIENTE, getCurrentUserId()));
 
-            // Factory Pattern: crear lista de ProductoEvent
+            // Factory Pattern: crear lista de ProductoEvent (incluye vendedorId por seller)
             List<com.smartlogix.pedidos.event.ProductoEvent> productosEvent = saved.getDetalles().stream()
-                .map(d -> PedidoEventFactory.compra(d.getProductoId(), d.getCantidad(), saved.getUsuarioId()))
-                .map(c -> new com.smartlogix.pedidos.event.ProductoEvent(c.getProductoId(), c.getCantidad()))
+                .map(d -> new com.smartlogix.pedidos.event.ProductoEvent(d.getProductoId(), d.getCantidad(), d.getVendedorId()))
                 .toList();
 
             // Observer Pattern: notificar pedido creado
@@ -156,11 +165,13 @@ public class PedidoServiceImpl implements PedidoService {
 
         Pedido pedido = obtener(id);
 
-        if (pedido.getEstado() == EstadoPedido.ENVIADO ||
+        if (pedido.getEstado() == EstadoPedido.PAGADO ||
+            pedido.getEstado() == EstadoPedido.CONFIRMADO ||
+            pedido.getEstado() == EstadoPedido.ENVIADO ||
             pedido.getEstado() == EstadoPedido.ENTREGADO ||
             pedido.getEstado() == EstadoPedido.CANCELADO) {
 
-            throw new IllegalStateException("No se puede modificar el pedido");
+            throw new IllegalStateException("No se puede modificar un pedido que ya fue pagado o procesado");
         }
 
         pedido.getDetalles().clear();
@@ -176,6 +187,7 @@ public class PedidoServiceImpl implements PedidoService {
             det.setProductoId(d.getProductoId());
             det.setCantidad(d.getCantidad());
             det.setPrecio(d.getPrecioUnitario());
+            det.setVendedorId(d.getVendedorId());
             det.setPedido(pedido);
 
             pedido.getDetalles().add(det);
@@ -217,13 +229,13 @@ public class PedidoServiceImpl implements PedidoService {
             Pedido saved = pedidoRepository.save(pedido);
             log.info("[PAGO] Pedido guardado con estado PAGADO - ID: {}", saved.getId());
 
-            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved.getId(), EstadoPedido.PENDIENTE, EstadoPedido.PAGADO));
+            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved, EstadoPedido.PENDIENTE, EstadoPedido.PAGADO, getCurrentUserId()));
 
-            // Enviar eventos de compra al inventario (mantiene producer directo)
-            log.info("[PAGO] Enviando eventos de descuento de stock para pedido ID: {}", saved.getId());
+            // Descontar stock de forma síncrona vía REST
+            log.info("[PAGO] Descontando stock de forma síncrona para pedido ID: {}", saved.getId());
             saved.getDetalles().forEach(d -> {
                 log.info("[PAGO] Descontando stock - ProductoID: {}, Cantidad: {}", d.getProductoId(), d.getCantidad());
-                producer.enviarEventoCompra(
+                inventoryClient.descontarStock(
                         d.getProductoId(),
                         d.getCantidad(),
                         saved.getUsuarioId()
@@ -244,6 +256,43 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
+    public List<Pedido> porVendedor(String vendedorId) {
+        return pedidoRepository.findPedidosConProductosDeVendedor(vendedorId);
+    }
+
+    @Override
+    public Pedido cancelarConMotivo(Long id, String motivo, String usuarioId) {
+        Pedido pedido = obtener(id);
+
+        if (!pedido.getUsuarioId().equals(usuarioId)) {
+            throw new RuntimeException("No autorizado para cancelar este pedido");
+        }
+
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE && pedido.getEstado() != EstadoPedido.PAGADO && pedido.getEstado() != EstadoPedido.CONFIRMADO) {
+            throw new IllegalStateException("Solo se puede cancelar pedidos PENDIENTES o PAGADOS/CONFIRMADOS");
+        }
+
+        EstadoPedido estadoAnterior = pedido.getEstado();
+        pedido.setEstado(EstadoPedido.CANCELADO);
+        pedido.setMotivoCancelacion(motivo);
+
+        Pedido saved = pedidoRepository.save(pedido);
+        historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved, estadoAnterior, EstadoPedido.CANCELADO, getCurrentUserId()));
+
+        if (estadoAnterior == EstadoPedido.PAGADO || estadoAnterior == EstadoPedido.CONFIRMADO) {
+            saved.getDetalles().forEach(detalle ->
+                    inventoryClient.reponerStock(
+                            detalle.getProductoId(),
+                            detalle.getCantidad()
+                    )
+            );
+        }
+
+        observer.onPedidoCancelado(saved);
+        return saved;
+    }
+
+    @Override
     public Pedido cancelar(Long id) {
 
         Pedido pedido = obtener(id);
@@ -259,7 +308,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         Pedido saved = pedidoRepository.save(pedido);
 
-        historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved.getId(), estadoAnterior, EstadoPedido.CANCELADO));
+        historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved, estadoAnterior, EstadoPedido.CANCELADO, getCurrentUserId()));
 
         // Si el pedido ya tenía stock descontado (post-pago), reponer cada línea
         if (estadoAnterior == EstadoPedido.PAGADO
@@ -292,7 +341,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         Pedido saved = pedidoRepository.save(pedido);
 
-        historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved.getId(), EstadoPedido.CANCELADO, EstadoPedido.PENDIENTE));
+        historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(saved, EstadoPedido.CANCELADO, EstadoPedido.PENDIENTE, getCurrentUserId()));
 
         // Observer Pattern: notificar cambio de estado
         observer.onEstadoCambiado(saved);
@@ -304,18 +353,8 @@ public class PedidoServiceImpl implements PedidoService {
     // 🔥 FIX DEFINITIVO STOCK
     // =========================
     private void validarStock(Long productoId, Integer cantidad) {
-
-        Integer stock = inventoryClient.obtenerStock(productoId);
-
-        if (stock == null) {
-            throw new IllegalStateException("No se pudo obtener stock del producto");
-        }
-
-        if (stock < cantidad) {
-            throw new IllegalStateException(
-                    "Stock insuficiente. Disponible: " + stock + ", solicitado: " + cantidad
-            );
-        }
+        // Llama al endpoint de validación que verifica tanto stock como que el producto esté ACTIVO
+        inventoryClient.validarProducto(productoId, cantidad);
     }
 
     private void validarDetalle(DetallePedidoDTO d) {
@@ -356,7 +395,7 @@ public class PedidoServiceImpl implements PedidoService {
                     .info("Expirando pedido automáticamente: id={}", p.getId());
             p.setEstado(EstadoPedido.EXPIRADO);
             pedidoRepository.save(p);
-            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(p.getId(), EstadoPedido.PENDIENTE, EstadoPedido.EXPIRADO));
+            historialRepository.save(new com.smartlogix.pedidos.model.PedidoHistorial(p, EstadoPedido.PENDIENTE, EstadoPedido.EXPIRADO, "system"));
             
             // Notificar a Kafka que fue "cancelado" por expiración
             observer.onPedidoCancelado(p);

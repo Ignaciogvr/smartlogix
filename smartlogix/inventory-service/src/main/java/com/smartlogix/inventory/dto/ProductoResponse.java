@@ -35,6 +35,7 @@ public class ProductoResponse {
     private String color;
     private String paisFabricacion;
     private Integer totalRatings;
+    private String vendedorId;
 
     public ProductoResponse(Long id, String nombre, String descripcion,
                             Double precio, Integer stock, String categoria,
@@ -43,7 +44,7 @@ public class ProductoResponse {
                             String descripcionCorta, Double precioAnterior, Integer descuentoPorcentaje,
                             String marca, String modelo, String fabricante, String sku, String garantia,
                             String peso, String dimensiones, String material, String color, String paisFabricacion,
-                            Integer totalRatings) {
+                            Integer totalRatings, String vendedorId) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -71,6 +72,7 @@ public class ProductoResponse {
         this.color = color;
         this.paisFabricacion = paisFabricacion;
         this.totalRatings = totalRatings;
+        this.vendedorId = vendedorId;
     }
 
     public Long getId() { return id; }
@@ -101,4 +103,5 @@ public class ProductoResponse {
     public String getColor() { return color; }
     public String getPaisFabricacion() { return paisFabricacion; }
     public Integer getTotalRatings() { return totalRatings; }
+    public String getVendedorId() { return vendedorId; }
 }

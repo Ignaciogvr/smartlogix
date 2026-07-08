@@ -62,8 +62,14 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // ACTUATOR
+                .requestMatchers("/actuator/**").permitAll()
+
                 // PUBLICO
                 .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/banners/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/comentarios/**").permitAll()
 
                 // STOCK (M2M + ADMIN)
                 .requestMatchers(HttpMethod.PUT, "/productos/stock/*/reponer").authenticated()

@@ -78,4 +78,91 @@ public class KafkaProducer {
         log.info("📤 StockDescontadoEvent enviado -> productoId={}, requestId={}", 
             event.getProductoId(), requestId);
     }
+
+    // =========================
+    // ⚠️ STOCK BAJO
+    // =========================
+    public void enviarStockBajo(Long productoId, int stockActual, int stockMinimo) {
+        String requestId = MDC.get("requestId");
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+            "stock-alertas",
+            productoId.toString(),
+            java.util.Map.of(
+                "eventType", "StockBajo",
+                "productoId", productoId,
+                "stockActual", stockActual,
+                "stockMinimo", stockMinimo
+            )
+        );
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(StandardCharsets.UTF_8));
+        }
+        kafkaTemplate.send(record);
+        log.warn("⚠️ StockBajo enviado -> productoId={}, stockActual={}", productoId, stockActual);
+    }
+
+    // =========================
+    // 🚨 PRODUCTO AGOTADO
+    // =========================
+    public void enviarProductoAgotado(Long productoId) {
+        String requestId = MDC.get("requestId");
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+            "stock-alertas",
+            productoId.toString(),
+            java.util.Map.of("eventType", "ProductoAgotado", "productoId", productoId)
+        );
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(StandardCharsets.UTF_8));
+        }
+        kafkaTemplate.send(record);
+        log.warn("🚨 ProductoAgotado enviado -> productoId={}", productoId);
+    }
+
+    // =========================
+    // ✅ PRODUCTO REPUESTO
+    // =========================
+    public void enviarProductoRepuesto(Long productoId, int nuevoStock) {
+        String requestId = MDC.get("requestId");
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+            "stock-alertas",
+            productoId.toString(),
+            java.util.Map.of("eventType", "ProductoRepuesto", "productoId", productoId, "nuevoStock", nuevoStock)
+        );
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(StandardCharsets.UTF_8));
+        }
+        kafkaTemplate.send(record);
+        log.info("✅ ProductoRepuesto enviado -> productoId={}, nuevoStock={}", productoId, nuevoStock);
+    }
+
+    // =========================
+    // 💬 COMENTARIOS
+    // =========================
+    public void enviarComentarioCreado(Long comentarioId, Long productoId, String usuarioId) {
+        String requestId = MDC.get("requestId");
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+            "comentarios-events",
+            comentarioId.toString(),
+            java.util.Map.of("eventType", "ComentarioCreado", "comentarioId", comentarioId, "productoId", productoId, "usuarioId", usuarioId != null ? usuarioId : "")
+        );
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(StandardCharsets.UTF_8));
+        }
+        kafkaTemplate.send(record);
+        log.info("💬 ComentarioCreado enviado -> comentarioId={}", comentarioId);
+    }
+
+    public void enviarComentarioReportado(Long reporteId, Long comentarioId, String usuarioId) {
+        String requestId = MDC.get("requestId");
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+            "comentarios-events",
+            reporteId.toString(),
+            java.util.Map.of("eventType", "ComentarioReportado", "reporteId", reporteId, "comentarioId", comentarioId, "usuarioId", usuarioId != null ? usuarioId : "")
+        );
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        kafkaTemplate.send(record);
+        log.warn("?? ComentarioReportado enviado -> reporteId={}, comentarioId={}", reporteId, comentarioId);
+    }
 }

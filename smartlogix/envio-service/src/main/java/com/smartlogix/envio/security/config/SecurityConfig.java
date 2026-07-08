@@ -54,14 +54,11 @@ public class SecurityConfig {
 
                 .requestMatchers("/actuator/**").permitAll()
 
+                // Tracking público
                 .requestMatchers(HttpMethod.GET, "/api/envios/tracking/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/tracking/**").permitAll()
 
-                // 👉 ENVÍOS (ajusta si quieres más seguridad después)
-                .requestMatchers(HttpMethod.GET, "/envios/**", "/api/envios/**").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/envios/**", "/api/envios/**").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/envios/**", "/api/envios/**", "/api/admin/envios/**").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/envios/**", "/api/envios/**").hasRole("ADMIN")
-
+                // El control de roles se hace en el BFF - aquí solo validamos que sea JWT válido
                 .anyRequest().authenticated()
             )
 

@@ -5,6 +5,7 @@ public class DetallePedidoDTO {
     private Long productoId;
     private Integer cantidad;
     private Double precioUnitario;
+    private String vendedorId;
 
     public Long getProductoId() {
         return productoId;
@@ -29,4 +30,7 @@ public class DetallePedidoDTO {
     public void setPrecioUnitario(Double precioUnitario) {
         this.precioUnitario = precioUnitario;
     }
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
 }

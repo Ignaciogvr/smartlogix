@@ -34,6 +34,10 @@ public class ProductoMapper {
             
             producto.setImagenes(productImages);
         }
+
+        if (req.getVendedorId() != null) {
+            producto.setVendedorId(req.getVendedorId());
+        }
         
         return producto;
     }
@@ -81,7 +85,37 @@ public class ProductoMapper {
                 p.getMaterial(),
                 p.getColor(),
                 p.getPaisFabricacion(),
-                p.getTotalRatings()
+                p.getTotalRatings(),
+                p.getVendedorId()
+        );
+    }
+
+    public static com.smartlogix.inventory.dto.ComentarioResponse toComentarioResponse(com.smartlogix.inventory.model.ProductoComentario c) {
+        com.smartlogix.inventory.dto.ComentarioResponse response = new com.smartlogix.inventory.dto.ComentarioResponse(
+                c.getId(),
+                c.getUsuarioId(),
+                c.getNombreCliente(),
+                c.getFecha(),
+                c.getFechaActualizacion(),
+                c.getCalificacion(),
+                c.getComentario(),
+                c.getCompraVerificada(),
+                c.getRespuestaEmpresa(),
+                c.getImagenUrl()
+        );
+        response.setDestacado(c.getDestacado());
+        response.setVotosUtilidad(c.getVotosUtilidad());
+        return response;
+    }
+
+    public static com.smartlogix.inventory.dto.ComentarioReporteResponse toReporteResponse(com.smartlogix.inventory.model.ComentarioReporte r) {
+        return new com.smartlogix.inventory.dto.ComentarioReporteResponse(
+                r.getId(),
+                r.getComentario() != null ? r.getComentario().getId() : null,
+                r.getUsuarioId(),
+                r.getMotivo(),
+                r.getFecha(),
+                r.getResuelto()
         );
     }
 }

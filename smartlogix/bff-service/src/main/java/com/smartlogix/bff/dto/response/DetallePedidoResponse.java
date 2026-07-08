@@ -1,6 +1,10 @@
 package com.smartlogix.bff.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DetallePedidoResponse {
+
 
     private Long productoId;
 
@@ -11,6 +15,8 @@ public class DetallePedidoResponse {
     private Double precioUnitario;
 
     private Double subtotal;
+
+    private String vendedorId;
 
     public DetallePedidoResponse() {
     }
@@ -48,4 +54,7 @@ public class DetallePedidoResponse {
     public Double getSubtotal() {
         return subtotal;
     }
-}
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
+}

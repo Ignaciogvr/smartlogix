@@ -56,7 +56,32 @@ public class InventoryClient {
         }
     }
 
+    public void validarProducto(Long productoId, Integer cantidad) {
+        log.info("[INVENTORY] Validando productoID: {} cantidad: {}", productoId, cantidad);
+
+        try {
+            circuitBreaker.executeRunnable(() ->
+                    webClient.get()
+                            .uri(uriBuilder -> uriBuilder
+                                    .path("/productos/{id}/validar")
+                                    .queryParam("cantidad", cantidad)
+                                    .build(productoId))
+                            .retrieve()
+                            .bodyToMono(new ParameterizedTypeReference<ApiResponse>() {})
+                            .block()
+            );
+            log.info("[INVENTORY] Producto válido - ID: {}", productoId);
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            log.error("[INVENTORY] Error de validación (Status {}): {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new IllegalStateException("Validación fallida: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            log.error("[INVENTORY] Error inesperado al validar productoID: {}", productoId, e);
+            throw new IllegalStateException("Error al comunicarse con inventory-service para validación: " + e.getMessage(), e);
+        }
+    }
+
     public void reponerStock(Long productoId, Integer cantidad) {
+
 
         log.info("[INVENTORY] Reposición de stock - ProductoID: {}, Cantidad: {}", productoId, cantidad);
 
@@ -79,6 +104,33 @@ public class InventoryClient {
             log.error("[INVENTORY] Error al reponer stock - ProductoID: {}, Cantidad: {}, Error: {}", 
                     productoId, cantidad, e.getMessage(), e);
             throw new IllegalStateException("Error al reponer stock: " + e.getMessage(), e);
+        }
+    }
+
+    public void descontarStock(Long productoId, Integer cantidad, String usuarioId) {
+
+        log.info("[INVENTORY] Descontando stock - ProductoID: {}, Cantidad: {}", productoId, cantidad);
+
+        try {
+            circuitBreaker.executeRunnable(() ->
+
+                    webClient.put()
+                            .uri(uriBuilder -> uriBuilder
+                                    .path("/productos/stock/{id}/descontar")
+                                    .queryParam("cantidad", cantidad)
+                                    .queryParam("usuarioId", usuarioId)
+                                    .build(productoId))
+                            .retrieve()
+                            .bodyToMono(new ParameterizedTypeReference<ApiResponse>() {})
+                            .block()
+            );
+
+            log.info("[INVENTORY] Stock descontado correctamente - ProductoID: {}, Cantidad: {}", productoId, cantidad);
+
+        } catch (Exception e) {
+            log.error("[INVENTORY] Error al descontar stock - ProductoID: {}, Cantidad: {}, Error: {}", 
+                    productoId, cantidad, e.getMessage(), e);
+            throw new IllegalStateException("Error al descontar stock: " + e.getMessage(), e);
         }
     }
 }

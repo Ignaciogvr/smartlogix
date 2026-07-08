@@ -4,6 +4,7 @@ import com.smartlogix.usuarios.security.jwt.JwtAuthConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -52,10 +53,13 @@ public class SecurityConfig {
                 return config;
             }))
             .authorizeHttpRequests(auth -> auth
-                // 🔒 ENDPOINT INTERNO (Solo M2M con scope ADMIN)
-                .requestMatchers("/usuarios/internal/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/actuator/**").permitAll()
 
-                // ENDPOINTS PÚBLICOS AUTENTICADOS
+                // ENDPOINTS PÚBLICOS
+                .requestMatchers(HttpMethod.POST, "/usuarios/registro").permitAll()
+
+                // ENDPOINTS INTERNOS (llamados por microservicios con JWT válido)
+                .requestMatchers("/usuarios/internal/**").authenticated()
                 .requestMatchers("/usuarios/exists/**").authenticated()
 
                 // RESTO PROTEGIDO

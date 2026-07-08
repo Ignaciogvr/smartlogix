@@ -21,10 +21,40 @@ buildNumber.properties
 .classpath
 .settings/
 
-# IntelliJ (si algún día lo usas)
+# IntelliJ
 .idea/
 *.iml
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# Maven local cache
+m2/
+
+# VS Code
+.vscode/
+
+# Scripts y archivos externos al proyecto (raíz DEMO)
+scripts/
+puppeteer_test.js
+endpoints_scan.csv
+CODIGO_COMPLETO_FIX_CHECKOUT.java
+
+# PDF de evaluación (no es código fuente)
+EFT126_DSY1106_ESTUDIANTE.pdf
+
+# Logs de herramientas IA
+.codex-*
+*.log
+
+# Resultados temporales de testing
+*-results.csv
+test-output.txt
+resultados-validacion.json
+validacion-backend-resultados.json

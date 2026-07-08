@@ -25,9 +25,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGeneral(Exception ex) {
-
+        ex.printStackTrace(); // Log the exception for debugging
         return new ResponseEntity<>(
-                new ApiResponse(500, "Error interno del servidor", null),
+                new ApiResponse(500, "Error interno del servidor: " + ex.getMessage(), null),
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }

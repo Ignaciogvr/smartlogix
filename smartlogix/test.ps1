@@ -1,31 +1,80 @@
-$token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik5mWDVfR2dabWw1dkktRk56QWhXciJ9.eyJpc3MiOiJodHRwczovL2Rldi1ub21udjBmaG4zenB6dDR0LnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJPbVRQVmY0MzdtaElTNDIyZ3psUUVpRTNmdFNxd0ZPY0BjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9zbWFydGxvZ2l4LWFwaSIsImlhdCI6MTc4MTE5MDg2MiwiZXhwIjoxNzgxMjc3MjYyLCJzY29wZSI6IkFETUlOIENMSUVOVEUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJPbVRQVmY0MzdtaElTNDIyZ3psUUVpRTNmdFNxd0ZPYyIsInBlcm1pc3Npb25zIjpbIkFETUlOIiwiQ0xJRU5URSJdfQ.CaISZFtVmI4RTnRKci8h36-vGF9AMSrgZwhl2B5csO8SXJlnfbdcsQxZFI3K-wGNDBnduJaKFyXAFKZg4a5sTOdvLrtN8kNMvmekUqy_vKb-W6Gh16E8gB9MONWAznOMK8gEK_HNYA2tqUiha1tFu76rOk_azfhyMtIsxEXPSsI4X3zHUrtSg-_IZ1CsCXAo9iDm-3uRLksRd-GQBDfIfT6CT1K084d4ZjJiZiP30gKpPpHcTfQ3Ux_6yJGtrq1ZXj7cV5asBWSl4I-zgMp62PYbRn-BdS1Bcra_JmdXXsH1pamZ5dFJENoaIOUPZDs4rgO54DTMRgbyJgHaLVaazA"
-$body = @{
-    usuarioId="OmTPVf437mhIS422gzlQEiE3ftSqwFOc@clients"
-    direccionDestino="Calle Verdadera 456"
-    productos=@(
-        @{productoId=1; cantidad=1; precioUnitario=1200.0}
-    )
-} | ConvertTo-Json -Depth 10
+# Script para ejecutar todas las pruebas unitarias y generar reportes de cobertura
+# Este script se encarga de:
+# 1. Ejecutar pruebas en todos los servicios
+# 2. Generar reportes de cobertura con JaCoCo
+# 3. Consolidar métricas
 
-try {
-    Write-Host ">>> CREANDO PEDIDO"
-    $response = Invoke-RestMethod -Uri "http://localhost:8082/pedidos" -Method Post -Headers @{Authorization="Bearer $token"} -Body $body -ContentType "application/json"
-    $response | ConvertTo-Json -Depth 10
-    $pedidoId = $response.data.id
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host " EVALUACIÓN PARCIAL 3 - PRUEBAS UNITARIAS" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
 
-    Write-Host "`n>>> PAGANDO PEDIDO $pedidoId"
-    $res2 = Invoke-RestMethod -Uri "http://localhost:8082/pedidos/$pedidoId/pagar" -Method Put -Headers @{Authorization="Bearer $token"}
-    $res2 | ConvertTo-Json -Depth 10
+$services = @(
+    "usuarios-service",
+    "pedidos-service",
+    "inventory-service",
+    "envio-service",
+    "bff-service"
+)
 
-    Write-Host "`n>>> ESPERANDO EVENTOS KAFKA..."
-    Start-Sleep -Seconds 5
+$testResults = @()
 
-    Write-Host "`n>>> ENVIOS DEL USUARIO:"
-    $res3 = Invoke-RestMethod -Uri "http://localhost:8084/api/envios/usuario/OmTPVf437mhIS422gzlQEiE3ftSqwFOc@clients" -Method Get -Headers @{Authorization="Bearer $token"}
-    $res3 | ConvertTo-Json -Depth 10
-} catch {
-    $streamReader = [System.IO.StreamReader]::new($_.Exception.Response.GetResponseStream())
-    $ErrResp = $streamReader.ReadToEnd()
-    $streamReader.Close()
-    Write-Host "Error: " $ErrResp
+foreach ($service in $services) {
+    Write-Host "📦 Ejecutando pruebas en $service..." -ForegroundColor Yellow
+    Write-Host "-----------------------------" -ForegroundColor Gray
+    
+    Push-Location $service
+    
+    try {
+        # Limpiar y compilar
+        & mvnw.cmd clean test | Out-Host
+        
+        $exitCode = $LASTEXITCODE
+        
+        if ($exitCode -eq 0) {
+            Write-Host "✅ Pruebas exitosas en $service" -ForegroundColor Green
+            $testResults += [PSCustomObject]@{
+                Service = $service
+                Status = "PASS"
+                ExitCode = $exitCode
+            }
+        } else {
+            Write-Host "⚠️  Algunas pruebas fallaron en $service" -ForegroundColor Yellow
+            $testResults += [PSCustomObject]@{
+                Service = $service
+                Status = "FAIL"
+                ExitCode = $exitCode
+            }
+        }
+    }
+    catch {
+        Write-Host "❌ Error al ejecutar pruebas en $service" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $testResults += [PSCustomObject]@{
+            Service = $service
+            Status = "ERROR"
+            ExitCode = -1
+        }
+    }
+    finally {
+        Pop-Location
+    }
+    
+    Write-Host ""
 }
+
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host " RESUMEN DE PRUEBAS" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+$testResults | Format-Table -AutoSize
+
+Write-Host ""
+Write-Host "📊 Los reportes de cobertura están disponibles en:" -ForegroundColor Cyan
+foreach ($service in $services) {
+    Write-Host "   - $service/target/site/jacoco/index.html" -ForegroundColor Gray
+}
+
+Write-Host ""
+Write-Host "✅ Pruebas completadas" -ForegroundColor Green

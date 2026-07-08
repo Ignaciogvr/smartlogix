@@ -59,6 +59,12 @@ public class ProductoCatalogoDTO {
     private String paisFabricacion;
     private Integer totalRatings;
 
+    /**
+     * ID del vendedor dueño de este producto.
+     * Necesario para que el BFF lo asigne correctamente a cada línea del pedido durante el checkout.
+     */
+    private String vendedorId;
+
     public ProductoCatalogoDTO() {
     }
 
@@ -256,4 +262,7 @@ public class ProductoCatalogoDTO {
 
     public Integer getTotalRatings() { return totalRatings; }
     public void setTotalRatings(Integer totalRatings) { this.totalRatings = totalRatings; }
-}
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
+}

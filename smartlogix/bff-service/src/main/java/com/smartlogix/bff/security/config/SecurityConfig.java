@@ -138,6 +138,7 @@ public class SecurityConfig {
                     // PUBLIC
                     // ====================================
 
+
                     .requestMatchers(
                             "/actuator/**"
                     ).permitAll()
@@ -156,25 +157,27 @@ public class SecurityConfig {
 
                     .requestMatchers(
                             HttpMethod.GET,
-                            "/catalogo/**"
+                            "/api/catalogo/**",
+                            "/api/productos/**",
+                            "/api/banners/**"
                     ).permitAll()
 
-                    // HOME FRONT
+                    // HOME FRONT Y REGISTRO
                     .requestMatchers(
                             HttpMethod.GET,
-                            "/dashboard/home"
+                            "/api/home/**"
                     ).permitAll()
-
-                    // PRODUCTOS DESTACADOS
+                    
                     .requestMatchers(
-                            HttpMethod.GET,
-                            "/dashboard/destacados"
+                            HttpMethod.POST,
+                            "/api/usuarios/registro",
+                            "/api/usuarios/me"
                     ).permitAll()
 
                     // TRACKING PÚBLICO
                     .requestMatchers(
                             HttpMethod.GET,
-                            "/envios/tracking/**"
+                            "/api/tracking/**"
                     ).permitAll()
 
                     // ====================================
@@ -182,23 +185,24 @@ public class SecurityConfig {
                     // ====================================
 
                     .requestMatchers(
-                            "/usuarios/**"
+                            "/api/usuarios/**"
                     ).authenticated()
 
                     .requestMatchers(
-                            "/pedidos/**"
+                            "/api/pedidos/**",
+                            "/api/carrito/**"
                     ).authenticated()
 
                     .requestMatchers(
-                            "/checkout/**"
+                            "/api/checkout/**"
                     ).authenticated()
 
                     .requestMatchers(
-                            "/envios/**"
+                            "/api/envios/**"
                     ).authenticated()
 
                     .requestMatchers(
-                            "/dashboard/**"
+                            "/api/dashboard/**"
                     ).authenticated()
 
                     // ====================================
@@ -206,7 +210,7 @@ public class SecurityConfig {
                     // ====================================
 
                     .requestMatchers(
-                            "/admin/**"
+                            "/api/admin/**"
                     ).hasRole("ADMIN")
 
                     // ====================================

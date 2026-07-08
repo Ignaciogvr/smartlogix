@@ -30,14 +30,14 @@ public class CatalogoAggregator {
     }
 
     public List<ProductoCatalogoDTO> productosOferta() {
-        var envelope = inventoryClient.productosDestacados();
+        var envelope = inventoryClient.productosOfertas();
         return envelope != null && envelope.getData() != null
                 ? envelope.getData()
                 : List.of();
     }
 
     public List<ProductoCatalogoDTO> productosNuevos() {
-        var envelope = inventoryClient.productosDestacados();
+        var envelope = inventoryClient.productosNuevos();
         return envelope != null && envelope.getData() != null
                 ? envelope.getData()
                 : List.of();

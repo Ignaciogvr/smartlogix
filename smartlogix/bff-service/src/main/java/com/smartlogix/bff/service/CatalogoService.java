@@ -20,6 +20,10 @@ public interface CatalogoService {
 
     List<ProductoCatalogoDTO> productosDestacados();
 
+    List<ProductoCatalogoDTO> productosEnOferta();
+
+    List<ProductoCatalogoDTO> productosNuevos();
+
     List<com.smartlogix.bff.dto.response.ComentarioDTO> obtenerComentarios(Long productoId);
 
     com.smartlogix.bff.dto.response.ComentarioDTO agregarComentario(Long productoId, com.smartlogix.bff.dto.request.ComentarioCreateRequestDTO request, String userId, String userName);
@@ -29,4 +33,14 @@ public interface CatalogoService {
     void eliminarComentario(Long comentarioId, String userId);
 
     List<ProductoCatalogoDTO> productosRelacionados(Long productoId);
+
+    List<ProductoCatalogoDTO> productosRelacionadosPorMarca(Long productoId);
+    List<ProductoCatalogoDTO> productosMenosVendidos();
+    void registrarVista(Long productoId, String userId);
+    List<ProductoCatalogoDTO> productosVistosRecientemente(String userId);
+    List<ProductoCatalogoDTO> productosRecomendados(String userId);
+    
+    List<String> listarCategorias();
+    List<java.util.Map<String, Object>> listarBanners();
+    List<ProductoCatalogoDTO> buscarProductos(String query);
 }

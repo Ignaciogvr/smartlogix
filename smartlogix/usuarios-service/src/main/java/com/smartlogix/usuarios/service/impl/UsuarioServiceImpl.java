@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 
+import com.smartlogix.usuarios.kafka.producer.KafkaProducerService;
+
 import java.util.List;
 
 @Service
@@ -18,9 +20,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     private static final Logger log = LoggerFactory.getLogger(UsuarioServiceImpl.class);
 
     private final UsuarioRepository repository;
+    private final KafkaProducerService producer;
 
-    public UsuarioServiceImpl(UsuarioRepository repository) {
+    public UsuarioServiceImpl(UsuarioRepository repository, KafkaProducerService producer) {
         this.repository = repository;
+        this.producer = producer;
     }
 
     @Override
@@ -45,6 +49,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                     Usuario usuarioGuardado = repository.save(u);
 
                     log.info("Usuario creado exitosamente - id: {}, auth0Id: {}", usuarioGuardado.getId(), auth0Id);
+
+                    producer.enviarUsuarioRegistrado(usuarioGuardado.getId(), auth0Id, email);
 
                     return usuarioGuardado;
                 });
@@ -98,6 +104,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             u.setEmail(datos.getEmail());
             cambiosRealizados = true;
         }
+        if (datos.getTelefono() != null) {
+            log.debug("Actualizando telefono - auth0Id: {}", auth0Id);
+            u.setTelefono(datos.getTelefono());
+            cambiosRealizados = true;
+        }
 
         if (datos.getEstado() != null) {
             log.debug("Actualizando estado - auth0Id: {}, nuevo estado: {}", auth0Id, datos.getEstado());
@@ -105,15 +116,23 @@ public class UsuarioServiceImpl implements UsuarioService {
             cambiosRealizados = true;
         }
 
+        if (datos.getRol() != null) {
+            log.debug("Actualizando rol - auth0Id: {}, nuevo rol: {}", auth0Id, datos.getRol());
+            u.setRol(datos.getRol());
+            cambiosRealizados = true;
+        }
+
         if (!cambiosRealizados) {
             log.warn("Actualización solicitada sin cambios - auth0Id: {}", auth0Id);
         }
+        if (cambiosRealizados) {
+            Usuario guardado = repository.save(u);
+            log.info("Usuario actualizado exitosamente - auth0Id: {}", auth0Id);
+            producer.enviarPerfilActualizado(guardado.getId(), auth0Id);
+            return guardado;
+        }
 
-        Usuario usuarioActualizado = repository.save(u);
-
-        log.info("Usuario actualizado exitosamente - id: {}, auth0Id: {}", usuarioActualizado.getId(), auth0Id);
-
-        return usuarioActualizado;
+        return u;
     }
 
     @Override
@@ -138,5 +157,104 @@ public class UsuarioServiceImpl implements UsuarioService {
         log.debug("Usuario existe: {} - auth0Id: {}", existe, auth0Id);
 
         return existe;
+    }
+
+    @Override
+    public Usuario suspenderUsuario(String auth0Id, int dias) {
+        log.info("Suspendiendo usuario por {} días - auth0Id: {}", dias, auth0Id);
+
+        Usuario u = obtenerPorUserId(auth0Id);
+
+        java.time.LocalDateTime fechaSuspension = java.time.LocalDateTime.now().plusDays(dias);
+        u.setFechaSuspension(fechaSuspension);
+        u.setEstado("SUSPENDIDO");
+
+        Usuario usuarioSuspendido = repository.save(u);
+
+        log.info("Usuario suspendido exitosamente - id: {}, auth0Id: {}, hasta: {}", 
+                 usuarioSuspendido.getId(), auth0Id, fechaSuspension);
+
+        return usuarioSuspendido;
+    }
+
+    @Override
+    public Usuario activarUsuario(String auth0Id) {
+        log.info("Activando usuario - auth0Id: {}", auth0Id);
+
+        Usuario u = obtenerPorUserId(auth0Id);
+
+        u.setEstado("ACTIVO");
+        u.setFechaSuspension(null);
+
+        Usuario usuarioActivado = repository.save(u);
+
+        log.info("Usuario activado exitosamente - id: {}, auth0Id: {}", usuarioActivado.getId(), auth0Id);
+
+        return usuarioActivado;
+    }
+
+    @Override
+    public Usuario desactivarUsuario(String auth0Id) {
+        log.info("Desactivando usuario - auth0Id: {}", auth0Id);
+
+        Usuario u = obtenerPorUserId(auth0Id);
+
+        u.setEstado("INACTIVO");
+        u.setFechaSuspension(null);
+
+        Usuario usuarioDesactivado = repository.save(u);
+
+        log.info("Usuario desactivado exitosamente - id: {}, auth0Id: {}", usuarioDesactivado.getId(), auth0Id);
+
+        return usuarioDesactivado;
+    }
+
+    @Override
+    public Usuario crearVendedorOChofer(String nombre, String email, String rol, String documentoIdentidad) {
+        log.info("Creando nuevo {} - email: {}", rol, email);
+
+        // Verificar que el email no exista
+        if (repository.findByEmail(email).isPresent()) {
+            log.warn("Email ya existe - email: {}", email);
+            throw new BusinessException("EMAIL_EXISTS", "El email ya está registrado");
+        }
+
+        Usuario u = new Usuario();
+        u.setNombre(nombre);
+        u.setEmail(email);
+        u.setEstado("ACTIVO");
+        u.setAuth0Id("auth0|" + System.currentTimeMillis() + "_" + email);
+
+        // Asignar rol
+        if ("CHOFER".equalsIgnoreCase(rol)) {
+            u.setRol(com.smartlogix.usuarios.model.Rol.CHOFER);
+        } else if ("VENDEDOR".equalsIgnoreCase(rol)) {
+            u.setRol(com.smartlogix.usuarios.model.Rol.VENDEDOR);
+        } else {
+            u.setRol(com.smartlogix.usuarios.model.Rol.CLIENTE);
+        }
+
+        Usuario usuarioCreado = repository.save(u);
+
+        log.info("Usuario {} creado exitosamente - id: {}, email: {}", 
+                 rol, usuarioCreado.getId(), email);
+
+        return usuarioCreado;
+    }
+
+    @Override
+    public Usuario cambiarRol(String id, String nuevoRol) {
+        log.info("Cambiando rol del usuario {} a {}", id, nuevoRol);
+        
+        Usuario usuario = obtenerPorUserId(id);
+        
+        try {
+            com.smartlogix.usuarios.model.Rol enumRol = com.smartlogix.usuarios.model.Rol.valueOf(nuevoRol.toUpperCase());
+            usuario.setRol(enumRol);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("INVALID_ROLE", "Rol no válido: " + nuevoRol);
+        }
+        
+        return repository.save(usuario);
     }
 }

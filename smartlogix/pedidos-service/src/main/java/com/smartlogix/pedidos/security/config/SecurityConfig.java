@@ -62,22 +62,13 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // CLIENTE (TEMPORALMENTE permitAll para debugging 403)
-                .requestMatchers(HttpMethod.POST, "/pedidos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/pedidos/*").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/pedidos/*").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/pedidos/*/pagar").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/pedidos/*/reactivar").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/pedidos/*").hasAnyRole("CLIENTE", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/pedidos/usuario/**").hasAnyRole("CLIENTE", "ADMIN")
+                // ACTUATOR
+                .requestMatchers("/actuator/**").permitAll()
 
-                // ADMIN
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                // ADMIN (requiere rol ADMIN en el token)
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
 
-                // INTERNAL 🔒 (Solo M2M con scope ADMIN)
-                .requestMatchers("/internal/**").hasAuthority("ROLE_ADMIN")
-
-                // OTROS
+                // El resto: cualquier JWT válido puede acceder (el BFF controla los roles)
                 .anyRequest().authenticated()
             )
 

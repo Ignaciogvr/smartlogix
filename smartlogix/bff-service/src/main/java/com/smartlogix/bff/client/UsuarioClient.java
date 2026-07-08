@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @Component
 public class UsuarioClient {
@@ -26,6 +27,17 @@ public class UsuarioClient {
             WebClient webClient
     ) {
         this.webClient = webClient;
+    }
+
+    public UsuarioResponse crearDesdeToken() {
+        ServiceEnvelope<UsuarioResponse> envelope = webClient
+                .post()
+                .uri("/usuarios/me")
+                .retrieve()
+                .bodyToMono(ENVELOPE_USUARIO)
+                .block();
+
+        return unwrapUsuario(envelope);
     }
 
     public UsuarioResponse miPerfil() {
@@ -71,6 +83,97 @@ public class UsuarioClient {
         ServiceEnvelope<UsuarioResponse> envelope = webClient
                 .put()
                 .uri("/usuarios/{id}", subject)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(ENVELOPE_USUARIO)
+                .block();
+
+        return unwrapUsuario(envelope);
+    }
+
+    private static final ParameterizedTypeReference<ServiceEnvelope<List<UsuarioResponse>>> ENVELOPE_USUARIOS =
+            new ParameterizedTypeReference<>() {};
+
+    public List<UsuarioResponse> listarUsuarios() {
+        ServiceEnvelope<List<UsuarioResponse>> envelope = webClient
+                .get()
+                .uri("/usuarios")
+                .retrieve()
+                .bodyToMono(ENVELOPE_USUARIOS)
+                .block();
+
+        return envelope != null ? envelope.getData() : null;
+    }
+
+    public UsuarioResponse actualizarUsuario(String id, ActualizarPerfilRequest request) {
+        Map<String, String> body = new HashMap<>();
+        if (request.getNombre() != null) {
+            body.put("nombre", request.getNombre());
+        }
+
+        ServiceEnvelope<UsuarioResponse> envelope = webClient
+                .put()
+                .uri("/usuarios/{id}", id)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(ENVELOPE_USUARIO)
+                .block();
+
+        return unwrapUsuario(envelope);
+    }
+
+    public void desactivarUsuario(String id) {
+        webClient
+                .delete()
+                .uri("/usuarios/{id}", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+
+    public void activarUsuario(String id) {
+        webClient
+                .put()
+                .uri("/usuarios/{id}/reactivar", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+
+    public void suspenderUsuario(String id, int dias) {
+        webClient
+                .put()
+                .uri("/usuarios/{id}/suspender/{dias}", id, dias)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+
+    public UsuarioResponse crearVendedorOChofer(String nombre, String email, String rol, String documentoIdentidad) {
+        Map<String, String> body = new HashMap<>();
+        body.put("nombre", nombre);
+        body.put("email", email);
+        body.put("rol", rol);
+        body.put("documentoIdentidad", documentoIdentidad);
+
+        ServiceEnvelope<UsuarioResponse> envelope = webClient
+                .post()
+                .uri("/usuarios/crear")
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(ENVELOPE_USUARIO)
+                .block();
+
+        return unwrapUsuario(envelope);
+    }
+
+    public UsuarioResponse cambiarRol(String id, String rol) {
+        Map<String, String> body = new HashMap<>();
+        body.put("rol", rol);
+
+        ServiceEnvelope<UsuarioResponse> envelope = webClient
+                .put()
+                .uri("/usuarios/{id}/rol", id)
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(ENVELOPE_USUARIO)

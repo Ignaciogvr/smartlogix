@@ -13,6 +13,7 @@ public class ProductoCreateRequest {
     private Integer stock;
     private String categoria;
     private List<String> imagenes;
+    private String vendedorId;
 
 
     public String getNombre() { return nombre; }
@@ -37,4 +38,7 @@ public class ProductoCreateRequest {
 
     public List<String> getImagenes() { return imagenes; }
     public void setImagenes(List<String> imagenes) { this.imagenes = imagenes; }
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
 }

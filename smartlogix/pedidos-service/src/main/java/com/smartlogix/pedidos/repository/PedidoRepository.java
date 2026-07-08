@@ -17,4 +17,11 @@ public interface PedidoRepository
     List<Pedido> findByEstado(
             EstadoPedido estado
     );
+
+    long countByEstado(EstadoPedido estado);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT DISTINCT p FROM Pedido p JOIN p.detalles d WHERE d.vendedorId = :vendedorId ORDER BY p.fecha DESC"
+    )
+    List<Pedido> findPedidosConProductosDeVendedor(@org.springframework.data.repository.query.Param("vendedorId") String vendedorId);
 }

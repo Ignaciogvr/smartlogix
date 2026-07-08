@@ -23,6 +23,8 @@ public class EnvioResponse {
 
     private LocalDateTime fechaEntregaEstimada;
 
+    private String vendedorId;
+
     public EnvioResponse() {
     }
 
@@ -108,4 +110,7 @@ public class EnvioResponse {
         this.fechaEntregaEstimada =
                 fechaEntregaEstimada;
     }
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
 }

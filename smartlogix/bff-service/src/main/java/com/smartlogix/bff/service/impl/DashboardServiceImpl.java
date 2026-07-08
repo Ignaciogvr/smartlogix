@@ -47,8 +47,8 @@ public class DashboardServiceImpl implements DashboardService {
         List<EnvioResponse> envios =
                 envioClient.listarEnvios();
 
-        long totalUsuarios =
-                usuarioClient.existeUsuario("admin") ? 1L : 0L;
+        List<com.smartlogix.bff.dto.response.UsuarioResponse> listaUsuarios = usuarioClient.listarUsuarios();
+        long totalUsuarios = (listaUsuarios != null) ? listaUsuarios.size() : 0L;
 
         long pedidosPendientes =
                 pedidos.stream()

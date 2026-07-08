@@ -1,9 +1,12 @@
 package com.smartlogix.bff.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PedidoResponse {
+
 
     private Long id;
 

@@ -52,6 +52,16 @@ public class CatalogoServiceImpl implements CatalogoService {
     }
 
     @Override
+    public List<ProductoCatalogoDTO> productosEnOferta() {
+        return enrichList(dataOrEmpty(inventoryClient.productosOfertas()));
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> productosNuevos() {
+        return enrichList(dataOrEmpty(inventoryClient.productosNuevos()));
+    }
+
+    @Override
     public List<com.smartlogix.bff.dto.response.ComentarioDTO> obtenerComentarios(Long productoId) {
         return dataOrEmpty(inventoryClient.obtenerComentarios(productoId));
     }
@@ -76,6 +86,62 @@ public class CatalogoServiceImpl implements CatalogoService {
     @Override
     public void eliminarComentario(Long comentarioId, String userId) {
         inventoryClient.eliminarComentario(comentarioId, userId);
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> productosRelacionadosPorMarca(Long productoId) {
+        return enrichList(dataOrEmpty(inventoryClient.productosRelacionadosPorMarca(productoId)));
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> productosMenosVendidos() {
+        return enrichList(dataOrEmpty(inventoryClient.productosMenosVendidos()));
+    }
+
+    @Override
+    public void registrarVista(Long productoId, String userId) {
+        inventoryClient.registrarVista(productoId, userId);
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> productosVistosRecientemente(String userId) {
+        return enrichList(dataOrEmpty(inventoryClient.productosVistosRecientemente(userId)));
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> productosRecomendados(String userId) {
+        return enrichList(dataOrEmpty(inventoryClient.productosRecomendados(userId)));
+    }
+
+    @Override
+    public List<String> listarCategorias() {
+        // Retornar categorías disponibles
+        return List.of("ELECTRONICA", "HOGAR", "DEPORTES", "MODA", "LIBROS", "JUGUETES", "ACCESORIOS", "OTROS");
+    }
+
+    @Override
+    public List<java.util.Map<String, Object>> listarBanners() {
+        // Retornar banners promocionales mock o desde servicio
+        return List.of(
+            java.util.Map.of(
+                "id", 1,
+                "titulo", "Ofertas de Temporada",
+                "imagen", "/images/banner1.jpg",
+                "link", "/catalogo/productos"
+            ),
+            java.util.Map.of(
+                "id", 2,
+                "titulo", "Nuevos Productos",
+                "imagen", "/images/banner2.jpg",
+                "link", "/catalogo/activos"
+            )
+        );
+    }
+
+    @Override
+    public List<ProductoCatalogoDTO> buscarProductos(String query) {
+        // Buscar productos por nombre o descripción
+        return enrichList(dataOrEmpty(inventoryClient.buscarProductos(query)));
     }
 
     private static <T> List<T> dataOrEmpty(ServiceEnvelope<List<T>> envelope) {

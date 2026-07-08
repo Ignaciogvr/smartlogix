@@ -145,7 +145,33 @@ public class EnvioServiceImpl implements EnvioService {
         return map(saved);
     }
 
+    @Override
+    public EnvioResponse crearEnvioInterno(Long pedidoId, String usuarioId, String direccionDestino) {
+        log.info("🚀 Crear envío automático pedidoId={} usuarioId={}", pedidoId, usuarioId);
+
+        Envio envio = new Envio();
+        envio.setPedidoId(pedidoId);
+        envio.setUsuarioId(usuarioId);
+        envio.setTrackingNumber(TrackingGenerator.generate());
+        envio.setEstado(EstadoEnvio.PENDIENTE);
+        envio.setDireccionDestino(direccionDestino);
+
+        Envio saved = repo.save(envio);
+
+        kafka.enviarEventoEnvio(
+                new EnvioCreadoEvent(
+                        saved.getId(),
+                        saved.getPedidoId(),
+                        saved.getTrackingNumber()
+                )
+        );
+
+        log.info("📤 Evento envío publicado tracking={}", saved.getTrackingNumber());
+        return map(saved);
+    }
+
     // NUEVO
+
     @Override
     public EnvioResponse obtenerPorId(
             Long id
@@ -204,6 +230,14 @@ public class EnvioServiceImpl implements EnvioService {
     }
 
     @Override
+    public List<EnvioResponse> listarPorChofer(String choferId) {
+        return repo.findByChoferId(choferId)
+                .stream()
+                .map(this::map)
+                .toList();
+    }
+
+    @Override
     public EnvioResponse actualizarEstado(
             Long envioId,
             String nuevoEstado
@@ -227,10 +261,12 @@ public class EnvioServiceImpl implements EnvioService {
             throw new IllegalStateException("No se puede cambiar el estado de un envío cancelado");
         } else if (actual == EstadoEnvio.ENTREGADO) {
             throw new IllegalStateException("No se puede cambiar el estado de un envío entregado");
-        } else if (actual == EstadoEnvio.PENDIENTE && nuevo != EstadoEnvio.PREPARANDO) {
-            throw new IllegalStateException("De PENDIENTE solo puede pasar a PREPARANDO");
-        } else if (actual == EstadoEnvio.PREPARANDO && nuevo != EstadoEnvio.EN_RUTA) {
-            throw new IllegalStateException("De PREPARANDO solo puede pasar a EN_RUTA");
+        } else if (actual == EstadoEnvio.PENDIENTE && nuevo != EstadoEnvio.PREPARANDO && nuevo != EstadoEnvio.ASIGNADO) {
+            throw new IllegalStateException("De PENDIENTE solo puede pasar a PREPARANDO o ASIGNADO");
+        } else if (actual == EstadoEnvio.PREPARANDO && nuevo != EstadoEnvio.ASIGNADO && nuevo != EstadoEnvio.EN_RUTA) {
+            throw new IllegalStateException("De PREPARANDO solo puede pasar a ASIGNADO o EN_RUTA");
+        } else if (actual == EstadoEnvio.ASIGNADO && nuevo != EstadoEnvio.EN_RUTA) {
+            throw new IllegalStateException("De ASIGNADO solo puede pasar a EN_RUTA");
         } else if (actual == EstadoEnvio.EN_RUTA && nuevo != EstadoEnvio.ENTREGADO) {
             throw new IllegalStateException("De EN_RUTA solo puede pasar a ENTREGADO");
         }
@@ -243,16 +279,93 @@ public class EnvioServiceImpl implements EnvioService {
                 nuevoEstado
         );
 
-        return map(
-                repo.save(envio)
-        );
+        Envio saved = repo.save(envio);
+        kafka.enviarTrackingActualizado(saved.getId(), nuevo.name(), null);
+        return map(saved);
+    }
+
+    @Override
+    public EnvioResponse asignarChofer(Long envioId, String choferId, String choferNombre) {
+        
+        log.info("[ENVIO] Asignando chofer {} al envío {}", choferId, envioId);
+        
+        // Validar que el envío existe
+        Envio envio = repo.findById(envioId)
+                .orElseThrow(() -> new RuntimeException("Envío no encontrado con ID: " + envioId));
+
+        // Validar que el envío esté en estado PENDIENTE
+        if (envio.getEstado() != EstadoEnvio.PENDIENTE) {
+            throw new IllegalStateException(
+                "Solo envíos en estado PENDIENTE pueden asignarse a un chofer. Estado actual: " + envio.getEstado()
+            );
+        }
+
+        // Validar que se proporcione un choferId
+        if (choferId == null || choferId.isBlank()) {
+            throw new IllegalArgumentException("El choferId no puede estar vacío");
+        }
+
+        // Asignar chofer
+        envio.setChoferId(choferId);
+        if (choferNombre != null && !choferNombre.isBlank()) {
+            envio.setChoferNombre(choferNombre);
+        }
+        
+        // Cambiar estado a ASIGNADO automáticamente
+        envio.setEstado(EstadoEnvio.ASIGNADO);
+        
+        Envio saved = repo.save(envio);
+        kafka.enviarTransportistaAsignado(saved.getId(), null, choferNombre);
+
+        log.info("[ENVIO] Chofer asignado exitosamente: envioId={}, choferId={}, nuevoEstado={}",
+                envioId, choferId, EstadoEnvio.ASIGNADO);
+
+        return map(saved);
+    }
+
+    @Override
+    public EnvioResponse marcarEntregado(Long id, com.smartlogix.envio.dto.request.EntregarRequest request, String choferId) {
+        log.info("[ENVIO] Marcando como ENTREGADO envioId={} choferId={}", id, choferId);
+
+        Envio envio = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Envío no encontrado"));
+
+        if (!choferId.equals(envio.getChoferId()) && !SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new RuntimeException("No autorizado para este envío");
+        }
+
+        if (envio.getEstado() == EstadoEnvio.ENTREGADO) {
+            throw new IllegalStateException("El envío ya está entregado");
+        }
+
+        envio.setEstado(EstadoEnvio.ENTREGADO);
+
+        // Agregamos el historial con la información del receptor
+        String detallesEntrega = String.format("[ENTREGADO] Receptor: %s. Firma: %s. Obs: %s",
+                request.getNombreReceptor() != null ? request.getNombreReceptor() : "N/A",
+                request.getFirmaReceptor() != null ? "[ADJUNTA]" : "No adjunta",
+                request.getObservaciones() != null ? request.getObservaciones() : "Ninguna");
+
+        com.smartlogix.envio.model.HistorialEnvio historial = new com.smartlogix.envio.model.HistorialEnvio(envio, EstadoEnvio.ENTREGADO, detallesEntrega);
+        envio.getHistorial().add(historial);
+
+        Envio saved = repo.save(envio);
+
+        // Evento Kafka de Envío Entregado
+        kafka.enviarEventoEntregado(new com.smartlogix.envio.event.EnvioEntregadoEvent(
+                saved.getId(),
+                saved.getPedidoId(),
+                java.time.LocalDateTime.now().toString()
+        ));
+
+        return map(saved);
     }
 
     @Override
     public void cancelarPorPedido(Long pedidoId) {
         List<Envio> envios = repo.findByPedidoId(pedidoId);
         for (Envio envio : envios) {
-            if (envio.getEstado() == EstadoEnvio.PENDIENTE || envio.getEstado() == EstadoEnvio.PREPARANDO) {
+            if (envio.getEstado() == EstadoEnvio.PENDIENTE || envio.getEstado() == EstadoEnvio.PREPARANDO || envio.getEstado() == EstadoEnvio.ASIGNADO) {
                 envio.setEstado(EstadoEnvio.CANCELADO);
                 repo.save(envio);
                 log.info("🚫 Envío cancelado por cancelación de pedido: tracking={}", envio.getTrackingNumber());
@@ -282,10 +395,15 @@ public class EnvioServiceImpl implements EnvioService {
         r.setDireccionDestino(
                 e.getDireccionDestino()
         );
+        r.setChoferId(e.getChoferId());
+        r.setChoferNombre(e.getChoferNombre());
 
         r.setFechaCreacion(
                 e.getFechaCreacion()
         );
+        // New fields for delivery proof
+        r.setFotoEntregaUrl(e.getFotoEntregaUrl());
+        r.setFirmaReceptorUrl(e.getFirmaReceptorUrl());
 
         return r;
     }

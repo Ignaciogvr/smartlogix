@@ -36,4 +36,9 @@ public class DetalleCompraRequest {
     public void setPrecioUnitario(Double precioUnitario) {
         this.precioUnitario = precioUnitario;
     }
+
+    private String vendedorId;
+
+    public String getVendedorId() { return vendedorId; }
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
 }

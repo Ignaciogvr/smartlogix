@@ -40,6 +40,18 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.categoria = :categoria AND p.estado = :estado")
     List<Producto> findByCategoriaAndEstado(@Param("categoria") String categoria, @Param("estado") EstadoProducto estado);
 
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(p.categoria) LIKE LOWER(CONCAT('%', :q, '%'))) AND p.estado = :estado")
+    List<Producto> buscarPorTexto(@Param("q") String q, @Param("estado") EstadoProducto estado);
+
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.oferta = true AND p.estado = :estado")
+    List<Producto> findOfertasActivas(@Param("estado") EstadoProducto estado);
+
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.nuevo = true AND p.estado = :estado")
+    List<Producto> findNuevosActivos(@Param("estado") EstadoProducto estado);
+
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.estado = :estado AND (:precioMin IS NULL OR p.precio >= :precioMin) AND (:precioMax IS NULL OR p.precio <= :precioMax) AND (:marca IS NULL OR p.marca = :marca) AND (:ratingMin IS NULL OR p.ratingPromedio >= :ratingMin)")
+    List<Producto> filtrar(@Param("estado") EstadoProducto estado, @Param("precioMin") Double precioMin, @Param("precioMax") Double precioMax, @Param("marca") String marca, @Param("ratingMin") Double ratingMin);
+
     // ===================== CONSULTAS CON JOIN FETCH PARA EVITAR N+1 =====================
 
     @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes")
@@ -51,4 +63,19 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     // ===================== OPTIMIZACIÓN (OPCIONAL PERO PRO) =====================
 
     boolean existsByNombre(String nombre);
-}
+
+    // ===================== VENDEDOR & STATS =====================
+    
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.vendedorId = :vendedorId")
+    List<Producto> findByVendedorId(@Param("vendedorId") String vendedorId);
+
+    long countByStockLessThan(Integer stock);
+
+    long countByStock(Integer stock);
+
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.estado = :estado ORDER BY p.cantidadVendidos ASC")
+    List<Producto> findTop5ByEstadoOrderByCantidadVendidosAsc(@Param("estado") EstadoProducto estado, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Producto p LEFT JOIN FETCH p.imagenes WHERE p.marca = :marca AND p.id != :id AND p.estado = 'ACTIVO'")
+    List<Producto> findTop5ByMarcaAndIdNot(@Param("marca") String marca, @Param("id") Long id, org.springframework.data.domain.Pageable pageable);
+}

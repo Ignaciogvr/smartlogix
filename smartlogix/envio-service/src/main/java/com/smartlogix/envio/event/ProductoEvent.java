@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductoEvent {
 
-    private String productoId;
+    private Long productoId;
     private Integer cantidad;
+    private String vendedorId;
 }

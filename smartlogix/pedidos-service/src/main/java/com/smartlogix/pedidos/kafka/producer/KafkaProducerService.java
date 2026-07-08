@@ -9,6 +9,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
 public class KafkaProducerService {
@@ -25,16 +26,21 @@ public class KafkaProducerService {
     private static final String TOPIC_PEDIDO_CREADO = "pedido-creado";
     private static final String TOPIC_PEDIDO_CANCELADO = "pedido-cancelado";
     private static final String TOPIC_PEDIDO_ESTADO = "pedido-estado-actualizado";
+    private static final String TOPIC_DEVOLUCION = "devolucion-events";
+
+    private final KafkaTemplate<String, Object> genericKafkaTemplate;
 
     public KafkaProducerService(
             KafkaTemplate<String, CompraEvent> kafkaTemplate,
             KafkaTemplate<String, com.smartlogix.pedidos.event.PedidoCreadoEvent> pedidoCreadoKafkaTemplate,
             KafkaTemplate<String, com.smartlogix.pedidos.event.PedidoCanceladoEvent> pedidoCanceladoKafkaTemplate,
-            KafkaTemplate<String, com.smartlogix.pedidos.event.PedidoEstadoActualizadoEvent> pedidoEstadoActualizadoKafkaTemplate) {
+            KafkaTemplate<String, com.smartlogix.pedidos.event.PedidoEstadoActualizadoEvent> pedidoEstadoActualizadoKafkaTemplate,
+            KafkaTemplate<String, Object> genericKafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
         this.pedidoCreadoKafkaTemplate = pedidoCreadoKafkaTemplate;
         this.pedidoCanceladoKafkaTemplate = pedidoCanceladoKafkaTemplate;
         this.pedidoEstadoActualizadoKafkaTemplate = pedidoEstadoActualizadoKafkaTemplate;
+        this.genericKafkaTemplate = genericKafkaTemplate;
     }
 
     public void enviarEventoCompra(Long productoId, Integer cantidad, String usuarioId) {
@@ -128,5 +134,32 @@ public class KafkaProducerService {
                             pedidoId, nuevoEstado, requestId);
                     }
                 });
+    }
+
+    // =========================
+    // 🔄 DEVOLUCIONES
+    // =========================
+    public void enviarEventoDevolucion(String eventType, Long devolucionId, Long pedidoId, String usuarioId, String estado) {
+        String requestId = MDC.get("requestId");
+        Map<String, Object> payload = Map.of(
+            "eventType", eventType,
+            "devolucionId", devolucionId,
+            "pedidoId", pedidoId,
+            "usuarioId", usuarioId != null ? usuarioId : "",
+            "estado", estado
+        );
+        ProducerRecord<String, Object> record = new ProducerRecord<>(TOPIC_DEVOLUCION, devolucionId.toString(), payload);
+        if (requestId != null) {
+            record.headers().add("X-Request-Id", requestId.getBytes(StandardCharsets.UTF_8));
+        }
+        genericKafkaTemplate.send(record)
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("❌ Error enviando evento devolución [{}] devolucionId={}", eventType, devolucionId, ex);
+                } else {
+                    log.info("📤 Evento devolución [{}] enviado OK: devolucionId={}, pedidoId={}, requestId={}",
+                        eventType, devolucionId, pedidoId, requestId);
+                }
+            });
     }
 }

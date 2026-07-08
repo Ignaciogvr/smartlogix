@@ -69,4 +69,41 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, com.smartlogix.pedidos.event.PedidoEstadoActualizadoEvent> pedidoEstadoActualizadoKafkaTemplate() {
         return new KafkaTemplate<>(pedidoEstadoActualizadoProducerFactory());
     }
+
+    // ================= STRING PRODUCER FOR OUTBOX PATTERN =================
+    @Bean
+    public ProducerFactory<String, String> stringProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        
+        // Evita duplicados en retries
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> stringKafkaTemplate() {
+        return new KafkaTemplate<>(stringProducerFactory());
+    }
+
+    // ================= GENERIC OBJECT PRODUCER =================
+    @Bean
+    public ProducerFactory<String, Object> objectProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> objectKafkaTemplate() {
+        return new KafkaTemplate<>(objectProducerFactory());
+    }
 }

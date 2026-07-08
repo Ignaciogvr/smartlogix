@@ -62,4 +62,31 @@ public class AdminProductoController {
                 new ApiResponse(200, "Productos con bajo stock", service.bajoStock())
         );
     }
-}
+
+    /**
+     * Moderación de reviews por ADMIN.
+     * Permite desactivar cualquier comentario sin importar el autor.
+     * DELETE /admin/productos/comentarios/{comentarioId}
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/comentarios/{comentarioId}")
+    public ResponseEntity<ApiResponse> moderarComentario(@PathVariable Long comentarioId) {
+        com.smartlogix.inventory.dto.ComentarioModeracionRequestDTO req = new com.smartlogix.inventory.dto.ComentarioModeracionRequestDTO();
+        req.setAccion("ELIMINADO");
+        req.setModeradorId(1L);
+        service.moderarComentario(comentarioId, req);
+        return ResponseEntity.ok(
+                new ApiResponse(200, "Comentario moderado y desactivado", null)
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/stats")
+    public ResponseEntity<com.smartlogix.inventory.dto.StatsInventory> getStats(
+            @org.springframework.beans.factory.annotation.Autowired com.smartlogix.inventory.repository.ProductoRepository productoRepository) {
+        long total = productoRepository.count();
+        long bajoStock = productoRepository.countByStockLessThan(10);
+        long sinStock = productoRepository.countByStock(0);
+        return ResponseEntity.ok(new com.smartlogix.inventory.dto.StatsInventory(total, bajoStock, sinStock));
+    }
+}

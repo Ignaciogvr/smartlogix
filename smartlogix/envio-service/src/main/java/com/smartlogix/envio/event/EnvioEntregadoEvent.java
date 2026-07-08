@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EnvioEntregadoEvent {
     private Long envioId;
+    private Long pedidoId;
     private String fechaEntrega;
 }

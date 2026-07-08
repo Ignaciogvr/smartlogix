@@ -12,6 +12,10 @@ public class CheckoutRequest {
 
     private String metodoPago;
 
+    private String telefonoContacto;
+
+    private String notasEntrega;
+
     public CheckoutRequest() {
     }
 
@@ -45,5 +49,21 @@ public class CheckoutRequest {
 
     public void setMetodoPago(String metodoPago) {
         this.metodoPago = metodoPago;
+    }
+
+    public String getTelefonoContacto() {
+        return telefonoContacto;
+    }
+
+    public void setTelefonoContacto(String telefonoContacto) {
+        this.telefonoContacto = telefonoContacto;
+    }
+
+    public String getNotasEntrega() {
+        return notasEntrega;
+    }
+
+    public void setNotasEntrega(String notasEntrega) {
+        this.notasEntrega = notasEntrega;
     }
 }

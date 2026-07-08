@@ -3,6 +3,7 @@ package com.smartlogix.envio.model;
 public enum EstadoEnvio {
     PENDIENTE,
     PREPARANDO,
+    ASIGNADO,
     EN_RUTA,
     ENTREGADO,
     CANCELADO;
@@ -11,8 +12,9 @@ public enum EstadoEnvio {
         return switch (this) {
             case PENDIENTE -> 0;
             case PREPARANDO -> 1;
-            case EN_RUTA -> 2;
-            case ENTREGADO -> 3;
+            case ASIGNADO -> 2;
+            case EN_RUTA -> 3;
+            case ENTREGADO -> 4;
             case CANCELADO -> 99;
         };
     }

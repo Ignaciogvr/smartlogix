@@ -84,6 +84,12 @@ public class KafkaConsumer {
                          @Header(value = KafkaHeaders.OFFSET, required = false) Long offset,
                          @Header(value = "X-Request-Id", required = false) String requestId) {
 
+        // ⚠️ DEPRECATED: Este consumer es obsoleto.
+        // El stock ahora se maneja SÍNCRONAMENTE vía REST en pedidos-service.
+        // Este consumer se mantendrá temporalmente para compatibilidad, pero será eliminado.
+        log.warn("⚠️ [DEPRECATED] Topic 'compras' recibido en offset={}. Este flujo es obsoleto.", offset);
+        log.warn("⚠️ El stock se maneja síncronamente vía REST. Este consumer será eliminado en futuras versiones.");
+
         // Restaurar requestId en MDC para trazabilidad
         if (requestId != null) {
             MDC.put("requestId", requestId);

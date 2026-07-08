@@ -73,9 +73,9 @@ services:
     networks:
       - smartlogix-net
     healthcheck:
-      test: ["CMD", "cub", "zk-ready", "localhost:2181", "20"]
+      test: ["CMD-SHELL", "nc -z localhost 2181 || exit 1"]
       interval: 10s
-      timeout: 10s
+      timeout: 5s
       retries: 10
       start_period: 30s
 
@@ -100,8 +100,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      # OPTIMIZACIÓN: Reducir heap de 512m a 256m — suficiente para dev con 1 broker
-      KAFKA_HEAP_OPTS: "-Xms128m -Xmx256m"
+      # OPTIMIZACIÓN: Aumentar heap de Kafka para evitar OOM kill
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
       # OPTIMIZACIÓN: Reducir tamaño de logs de partición para dev
       KAFKA_LOG_SEGMENT_BYTES: 10485760
       KAFKA_LOG_RETENTION_BYTES: 52428800
@@ -112,16 +112,18 @@ services:
     networks:
       - smartlogix-net
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9092 || exit 1"]
       interval: 10s
-      timeout: 10s
-      retries: 10
+      timeout: 5s
+      retries: 20
       start_period: 60s
 
   # ==================== MICROSERVICIOS ====================
 
   inventory-service:
-    build: ./inventory-service
+    build:
+      context: .
+      dockerfile: ./inventory-service/Dockerfile
     container_name: inventory-service
     ports:
       - "8081:8081"
@@ -148,7 +150,9 @@ services:
       start_period: 120s
 
   pedidos-service:
-    build: ./pedidos-service
+    build:
+      context: .
+      dockerfile: ./pedidos-service/Dockerfile
     container_name: pedidos-service
     ports:
       - "8082:8082"
@@ -177,7 +181,9 @@ services:
       start_period: 120s
 
   usuarios-service:
-    build: ./usuarios-service
+    build:
+      context: .
+      dockerfile: ./usuarios-service/Dockerfile
     container_name: usuarios-service
     ports:
       - "8083:8083"
@@ -203,7 +209,9 @@ services:
       start_period: 120s
 
   envio-service:
-    build: ./envio-service
+    build:
+      context: .
+      dockerfile: ./envio-service/Dockerfile
     container_name: envio-service
     ports:
       - "8084:8084"
@@ -236,17 +244,24 @@ services:
       start_period: 120s
 
   bff-service:
-    build: ./bff-service
+    build:
+      context: .
+      dockerfile: ./bff-service/Dockerfile
     container_name: bff-service
     ports:
       - "8080:8080"
     depends_on:
-      # FIX: BFF solo depende de infraestructura (postgres+kafka).
-      # Los microservicios se contactan via HTTP con reintentos internos de Spring.
-      # Eliminar depends_on de los 4 microservicios rompe el deadlock en cadena.
       postgres:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+      pedidos-service:
+        condition: service_healthy
+      usuarios-service:
+        condition: service_healthy
+      envio-service:
         condition: service_healthy
     environment:
       SERVICES_INVENTORY_URL: http://inventory-service:8081
@@ -276,7 +291,7 @@ services:
       - "4200:80"
     depends_on:
       bff-service:
-        condition: service_healthy
+        condition: service_started
     networks:
       - smartlogix-net
     restart: unless-stopped

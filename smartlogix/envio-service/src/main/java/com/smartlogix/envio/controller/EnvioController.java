@@ -1,5 +1,6 @@
 package com.smartlogix.envio.controller;
 
+import com.smartlogix.envio.dto.AsignarChoferRequest;
 import com.smartlogix.envio.dto.request.CrearEnvioRequest;
 import com.smartlogix.envio.dto.response.EnvioResponse;
 import com.smartlogix.envio.service.EnvioService;
@@ -48,6 +49,36 @@ public class EnvioController {
                 envioService.listarTodos()
         );
     }
+    
+    /**
+     * Endpoint para cotizar un envío según región y peso.
+     * Retorna el costo estimado del envío.
+     * DEBE IR ANTES DE /{id} para evitar conflictos
+     */
+    @GetMapping("/cotizar")
+    public ResponseEntity<?> cotizarEnvio(
+            @RequestParam String region,
+            @RequestParam(required = false, defaultValue = "1.0") Double peso
+    ) {
+        log.info("💰 GET /api/envios/cotizar - region={}, peso={}", region, peso);
+        
+        // Lógica simple de cotización
+        double costoBase = 5000; // CLP
+        double costoPorKg = 1000;
+        double costoRegion = region.equalsIgnoreCase("RM") ? 0 : 2000;
+        
+        double total = costoBase + (peso * costoPorKg) + costoRegion;
+        
+        return ResponseEntity.ok(java.util.Map.of(
+            "region", region,
+            "peso", peso,
+            "costoBase", costoBase,
+            "costoPorKg", costoPorKg,
+            "costoRegion", costoRegion,
+            "total", total,
+            "moneda", "CLP"
+        ));
+    }
 
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<EnvioResponse>> listarPorUsuario(
@@ -94,6 +125,33 @@ public class EnvioController {
 
         return ResponseEntity.ok(
                 envioService.obtenerPorId(id)
+        );
+    }
+
+    /**
+     * Endpoint para asignar un chofer a un envío.
+     * SOLO para envíos en estado PENDIENTE.
+     * Usado por ADMIN para asignar manualmente un chofer de la flota interna.
+     * 
+     * @param envioId ID del envío
+     * @param request DTO con choferId y choferNombre
+     * @return Envío actualizado con estado ASIGNADO
+     */
+    @PutMapping("/{envioId}/asignar-chofer")
+    public ResponseEntity<EnvioResponse> asignarChofer(
+            @PathVariable Long envioId,
+            @RequestBody AsignarChoferRequest request
+    ) {
+
+        log.info("🚚 PUT /api/envios/{}/asignar-chofer - choferId={}", 
+                envioId, request.getChoferId());
+
+        return ResponseEntity.ok(
+                envioService.asignarChofer(
+                        envioId,
+                        request.getChoferId(),
+                        request.getChoferNombre()
+                )
         );
     }
 }

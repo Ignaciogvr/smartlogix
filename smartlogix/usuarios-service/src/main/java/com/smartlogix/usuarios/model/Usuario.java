@@ -1,6 +1,7 @@
 package com.smartlogix.usuarios.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuarios", indexes = {
@@ -24,6 +25,14 @@ public class Usuario {
 
     private String estado = "ACTIVO";
 
+    @Enumerated(EnumType.STRING)
+    private Rol rol = Rol.CLIENTE;
+
+    private LocalDateTime fechaSuspension;
+
+    @Column(name = "telefono", length = 20)
+    private String telefono;
+
     public Usuario() {}
 
     public Long getId() { return id; }
@@ -39,4 +48,13 @@ public class Usuario {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
+
+    public LocalDateTime getFechaSuspension() { return fechaSuspension; }
+    public void setFechaSuspension(LocalDateTime fechaSuspension) { this.fechaSuspension = fechaSuspension; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }

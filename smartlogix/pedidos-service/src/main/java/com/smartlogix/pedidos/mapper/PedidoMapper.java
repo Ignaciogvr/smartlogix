@@ -21,17 +21,47 @@ public class PedidoMapper {
                         dto.setProductoId(d.getProductoId());
                         dto.setCantidad(d.getCantidad());
                         dto.setPrecioUnitario(d.getPrecio());
+                        dto.setVendedorId(d.getVendedorId());
                         return dto;
                     })
                     .collect(Collectors.toList());
 
-        return new PedidoResponseDTO(
+        List<PagoDTO> pagos = (p.getPagos() == null)
+                ? List.of()
+                : p.getPagos()
+                    .stream()
+                    .map(PedidoMapper::pagoToDTO)
+                    .collect(Collectors.toList());
+
+
+        PedidoResponseDTO dto = new PedidoResponseDTO(
                 p.getId(),
                 p.getUsuarioId(),
                 detalles,
                 p.getTotal(),
                 p.getEstado() != null ? p.getEstado().name() : null,
-                p.getFecha()
+                p.getFecha(),
+                p.getFechaCompletado(),
+                p.getRequiereLogisticaInversa(),
+                pagos
+        );
+        dto.setNotasInternas(p.getNotasInternas());
+        return dto;
+    }
+
+    public static PagoDTO pagoToDTO(Pago pago) {
+        if (pago == null) return null;
+
+        return new PagoDTO(
+                pago.getId(),
+                pago.getMonto(),
+                pago.getEstadoPago() != null ? pago.getEstadoPago().name() : null,
+                pago.getFechaTransaccion(),
+                pago.getFechaConfirmacion(),
+                pago.getEstadoPago() != null ? pago.getEstadoPago().getDescripcion() : null,
+                pago.getMetodoPago() != null ? pago.getMetodoPago().name() : null,
+                pago.getNumeroReferencia()
         );
     }
+
 }

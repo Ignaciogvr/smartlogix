@@ -16,7 +16,6 @@ public class TrackingAggregator {
     }
 
     public TrackingResponse tracking(String trackingCode) {
-        EnvioResponse envio = envioClient.obtenerTracking(trackingCode);
-        return TrackingMapper.fromEnvio(envio);
+        return envioClient.obtenerTracking(trackingCode);
     }
 }

@@ -151,4 +151,40 @@ public class PedidoController {
                 )
         );
     }
+
+    // ================= PEDIDOS POR VENDEDOR =================
+    @GetMapping("/vendedor/{vendedorId}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('VENDEDOR', 'ADMIN')")
+    public ResponseEntity<List<PedidoResponseDTO>> pedidosVendedor(
+            @PathVariable String vendedorId,
+            org.springframework.security.core.Authentication auth
+    ) {
+        org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) auth.getPrincipal();
+        String authVendedorId = jwt.getSubject();
+
+        if (!authVendedorId.equals(vendedorId) && !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new RuntimeException("No autorizado para ver estos pedidos");
+        }
+
+        List<PedidoResponseDTO> pedidos = service.porVendedor(vendedorId)
+                .stream()
+                .map(PedidoMapper::toDTO)
+                .toList();
+
+        return ResponseEntity.ok(pedidos);
+    }
+
+    // ================= CANCELAR PEDIDO CON MOTIVO =================
+    @PostMapping("/{id}/cancelar")
+    public ResponseEntity<PedidoResponseDTO> cancelarConMotivo(
+            @PathVariable Long id,
+            @Valid @RequestBody com.smartlogix.pedidos.dto.CancelarPedidoRequest request,
+            org.springframework.security.core.Authentication auth
+    ) {
+        org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) auth.getPrincipal();
+        String usuarioId = jwt.getSubject();
+
+        Pedido cancelado = service.cancelarConMotivo(id, request.getMotivo(), usuarioId);
+        return ResponseEntity.ok(PedidoMapper.toDTO(cancelado));
+    }
 }

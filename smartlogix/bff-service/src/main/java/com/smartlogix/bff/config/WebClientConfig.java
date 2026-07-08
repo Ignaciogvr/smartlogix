@@ -44,13 +44,13 @@ public class WebClientConfig {
                     var tokenOpt = SecurityUtils.bearerToken();
                     if (tokenOpt.isPresent()) {
                         String token = tokenOpt.get();
-                        log.info("🔑 WebClient FILTER → {} {} | Authorization: {}",
-                                clientRequest.method(), clientRequest.url(), token);
+                        log.info("WebClient FILTER -> {} {} | Authorization: Bearer <redacted>",
+                                clientRequest.method(), clientRequest.url());
                         return Mono.just(ClientRequest.from(clientRequest)
                                 .header("Authorization", token)
                                 .build());
                     } else {
-                        log.warn("⚠️ WebClient FILTER → {} {} | NO TOKEN in SecurityContext",
+                        log.warn("WebClient FILTER -> {} {} | NO TOKEN in SecurityContext",
                                 clientRequest.method(), clientRequest.url());
                         return Mono.just(clientRequest);
                     }

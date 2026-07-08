@@ -187,4 +187,75 @@ public class PedidoClient {
         }
         return envelope.getData();
     }
+
+    // ===================== CARRITO =====================
+
+    public Object obtenerCarrito(String userId) {
+        return webClient
+                .get()
+                .uri("/carritos")
+                .header("X-User-Id", userId)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .block();
+    }
+
+    public Object agregarItemCarrito(String userId, Object request) {
+        return webClient
+                .post()
+                .uri("/carritos/items")
+                .header("X-User-Id", userId)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .block();
+    }
+
+    public Object actualizarItemCarrito(String userId, Long productoId, Integer cantidad) {
+        return webClient
+                .put()
+                .uri(uriBuilder -> uriBuilder.path("/carritos/items/{productoId}").queryParam("cantidad", cantidad).build(productoId))
+                .header("X-User-Id", userId)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .block();
+    }
+
+    public Object removerItemCarrito(String userId, Long productoId) {
+        return webClient
+                .delete()
+                .uri("/carritos/items/{productoId}", productoId)
+                .header("X-User-Id", userId)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .block();
+    }
+
+    public void vaciarCarrito(String userId) {
+        webClient
+                .delete()
+                .uri("/carritos")
+                .header("X-User-Id", userId)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
+    // ===================== CHECKOUT =====================
+
+    public Object confirmarCheckout(String userId, String idempotencyKey, Object request) {
+        var spec = webClient
+                .post()
+                .uri("/checkout")
+                .header("X-User-Id", userId);
+
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            spec = spec.header("Idempotency-Key", idempotencyKey);
+        }
+
+        return spec.bodyValue(request)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .block();
+    }
 }

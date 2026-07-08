@@ -17,6 +17,8 @@ public interface EnvioRepository extends JpaRepository<Envio, Long> {
 
     List<Envio> findByUsuarioId(String usuarioId);
 
+    List<Envio> findByChoferId(String choferId);
+
     List<Envio> findByEstado(EstadoEnvio estado);
 
     boolean existsByTrackingNumber(String trackingNumber);

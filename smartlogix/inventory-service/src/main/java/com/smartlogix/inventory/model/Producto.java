@@ -23,6 +23,9 @@ public class Producto {
     @Version
     private Long version;
 
+    @Column(name = "vendedor_id", nullable = false)
+    private String vendedorId = "default_vendor";
+
     @Column(nullable = false, unique = true)
     private String nombre;
 
@@ -89,6 +92,9 @@ public class Producto {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
 
+    @Column(name = "fecha_ultima_venta")
+    private LocalDateTime fechaUltimaVenta;
+
     // ===================== CONSTRUCTORES =====================
 
     public Producto() {}
@@ -139,6 +145,7 @@ public class Producto {
 
         this.stock -= cantidad;
         this.cantidadVendidos += cantidad;
+        this.fechaUltimaVenta = LocalDateTime.now();
 
         if (this.stock == 0) {
             this.estado = EstadoProducto.INACTIVO;
@@ -166,6 +173,21 @@ public class Producto {
 
         this.totalRatings++;
         this.ratingPromedio = total / this.totalRatings;
+    }
+
+    public void recalcularRating(List<ProductoComentario> comentarios) {
+        if (comentarios == null || comentarios.isEmpty()) {
+            this.ratingPromedio = 0.0;
+            this.totalRatings = 0;
+            return;
+        }
+        
+        double suma = 0.0;
+        for (ProductoComentario c : comentarios) {
+            suma += c.getCalificacion();
+        }
+        this.totalRatings = comentarios.size();
+        this.ratingPromedio = suma / this.totalRatings;
     }
 
     public void reactivar() {
@@ -213,7 +235,7 @@ public class Producto {
     public Integer getDescuentoPorcentaje() {
         return descuentoPorcentaje;
     }
-
+    public String getVendedorId() { return vendedorId; }
     public String getMarca() { return marca; }
     public String getModelo() { return modelo; }
     public String getFabricante() { return fabricante; }
@@ -265,6 +287,10 @@ public class Producto {
         return fechaActualizacion;
     }
 
+    public LocalDateTime getFechaUltimaVenta() {
+        return fechaUltimaVenta;
+    }
+
     // ===================== SETTERS =====================
 
     public void setNombre(String nombre) {
@@ -299,6 +325,7 @@ public class Producto {
         this.descuentoPorcentaje = descuentoPorcentaje;
     }
 
+    public void setVendedorId(String vendedorId) { this.vendedorId = vendedorId; }
     public void setMarca(String marca) { this.marca = marca; }
     public void setModelo(String modelo) { this.modelo = modelo; }
     public void setFabricante(String fabricante) { this.fabricante = fabricante; }
@@ -332,5 +359,9 @@ public class Producto {
 
     public void setNuevo(Boolean nuevo) {
         this.nuevo = nuevo;
+    }
+
+    public void setFechaUltimaVenta(LocalDateTime fechaUltimaVenta) {
+        this.fechaUltimaVenta = fechaUltimaVenta;
     }
 }

@@ -17,9 +17,13 @@ public interface PedidoService {
 
     List<Pedido> porUsuario(String usuarioId);
 
+    List<Pedido> porVendedor(String vendedorId);
+
     Pedido pagar(Long id);
 
     Pedido cancelar(Long id);
+
+    Pedido cancelarConMotivo(Long id, String motivo, String usuarioId);
 
     Pedido reactivar(Long id);
 }

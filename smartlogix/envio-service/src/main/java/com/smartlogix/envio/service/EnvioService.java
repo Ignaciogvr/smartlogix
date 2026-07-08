@@ -11,6 +11,8 @@ public interface EnvioService {
             CrearEnvioRequest request
     );
 
+    EnvioResponse crearEnvioInterno(Long pedidoId, String usuarioId, String direccionDestino);
+
     // NUEVO
     EnvioResponse obtenerPorId(
             Long id
@@ -28,10 +30,16 @@ public interface EnvioService {
 
     List<EnvioResponse> listarPorUsuario(String usuarioId);
 
+    List<EnvioResponse> listarPorChofer(String choferId);
+
     EnvioResponse actualizarEstado(
             Long envioId,
             String nuevoEstado
     );
 
+    EnvioResponse asignarChofer(Long envioId, String choferId, String choferNombre);
+
     void cancelarPorPedido(Long pedidoId);
+
+    EnvioResponse marcarEntregado(Long id, com.smartlogix.envio.dto.request.EntregarRequest request, String choferId);
 }

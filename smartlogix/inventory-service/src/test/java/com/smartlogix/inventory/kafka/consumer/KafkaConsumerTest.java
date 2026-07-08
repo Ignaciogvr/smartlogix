@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.sql.SQLException;
+import org.springframework.dao.DataAccessException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,11 +53,11 @@ class KafkaConsumerTest {
     void consumir_ServiceLanzaSQLException_DebePropagarExcepcion() throws Exception {
         // Arrange
         CompraEvent event = new CompraEvent(1L, 5, "user123");
-        doThrow(new SQLException("BD down")).when(productoService)
+        doThrow(new DataAccessException("DB error") {}).when(productoService)
                 .descontarStock(1L, 5, "user123");
 
         // Act & Assert
-        assertThrows(SQLException.class, () -> 
+        assertThrows(DataAccessException.class, () -> 
                 kafkaConsumer.consumir(event, "compras", 0L, null)
         );
     }

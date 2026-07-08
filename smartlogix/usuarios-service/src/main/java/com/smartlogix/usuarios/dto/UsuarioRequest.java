@@ -9,6 +9,7 @@ public class UsuarioRequest {
     private String telefono;
     private String direccion;
     private String fotoUrl;
+    private com.smartlogix.usuarios.model.Rol rol;
 
 
     public String getNombre() { return nombre; }
@@ -29,4 +30,7 @@ public class UsuarioRequest {
 
     public String getFotoUrl() { return fotoUrl; }
     public void setFotoUrl(String fotoUrl) { this.fotoUrl = fotoUrl; }
+
+    public com.smartlogix.usuarios.model.Rol getRol() { return rol; }
+    public void setRol(com.smartlogix.usuarios.model.Rol rol) { this.rol = rol; }
 }

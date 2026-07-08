@@ -9,8 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,11 +33,11 @@ class KafkaProducerTest {
         kafkaProducer.enviarProductoCreado(event);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(
-                eq("producto-creado"),
-                eq("1"),
-                eq(event)
-        );
+        verify(kafkaTemplate, times(1)).send((ProducerRecord<String, Object>) org.mockito.ArgumentMatchers.<ProducerRecord<String, Object>>argThat(record -> 
+                record != null && 
+                "producto-creado".equals(record.topic()) &&
+                event.equals(record.value())
+        ));
     }
 
     @Test
@@ -44,7 +46,7 @@ class KafkaProducerTest {
         kafkaProducer.enviarProductoCreado(null);
 
         // Assert
-        verify(kafkaTemplate, never()).send(any(), any(), any());
+        verify(kafkaTemplate, never()).send(any(ProducerRecord.class));
     }
 
     @Test
@@ -56,7 +58,7 @@ class KafkaProducerTest {
         kafkaProducer.enviarProductoCreado(event);
 
         // Assert
-        verify(kafkaTemplate, never()).send(any(), any(), any());
+        verify(kafkaTemplate, never()).send(any(ProducerRecord.class));
     }
 
     @Test
@@ -68,11 +70,11 @@ class KafkaProducerTest {
         kafkaProducer.enviarStockDescontado(event);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(
-                eq("stock-descontado"),
-                eq("1"),
-                eq(event)
-        );
+        verify(kafkaTemplate, times(1)).send((ProducerRecord<String, Object>) org.mockito.ArgumentMatchers.<ProducerRecord<String, Object>>argThat(record -> 
+                record != null && 
+                "stock-descontado".equals(record.topic()) &&
+                event.equals(record.value())
+        ));
     }
 
     @Test
@@ -81,7 +83,7 @@ class KafkaProducerTest {
         kafkaProducer.enviarStockDescontado(null);
 
         // Assert
-        verify(kafkaTemplate, never()).send(any(), any(), any());
+        verify(kafkaTemplate, never()).send(any(ProducerRecord.class));
     }
 
     @Test
@@ -93,6 +95,6 @@ class KafkaProducerTest {
         kafkaProducer.enviarStockDescontado(event);
 
         // Assert
-        verify(kafkaTemplate, never()).send(any(), any(), any());
+        verify(kafkaTemplate, never()).send(any(ProducerRecord.class));
     }
 }
